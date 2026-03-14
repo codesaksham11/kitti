@@ -738,6 +738,7 @@ const Handlers = {
     State.playerId = msg.id;
     localStorage.setItem('tpId', msg.id);
     document.getElementById('hdr-id').textContent = 'ID: ' + msg.id;
+     UI.renderAll();
   },
 
   onRoomCreated(msg) {
@@ -1386,6 +1387,7 @@ const App = {
     document.getElementById('screen-game').classList.add('active');
     const saved = localStorage.getItem('tpId');
     State.playerId = saved;
+     UI.renderAll();
     WS.connect();
   },
 
