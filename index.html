@@ -1,2251 +1,1507 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>KITTI — Nine Card</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&family=Barlow+Condensed:wght@300;400;600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>तीन पत्ती · Kitti</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@400;600;700&family=Noto+Serif+Devanagari:wght@400;600&display=swap" rel="stylesheet"/>
 <style>
-/* ═══════════════════════════════════════════
-   RESET & ROOT
-═══════════════════════════════════════════ */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
+/* ══════════════════════════════════════════════════════════
+   ROOT VARIABLES — deep casino emerald × antique gold
+══════════════════════════════════════════════════════════ */
 :root {
-  --felt: #0d3320;
-  --felt2: #0a2818;
-  --gold: #c9a84c;
-  --gold2: #f0d080;
-  --red: #c0392b;
-  --cream: #f5eed8;
-  --dark: #080c08;
-  --ink: #1a2a1a;
-  --chip-blue: #2980b9;
-  --chip-red: #e74c3c;
-  --chip-white: #ecf0f1;
-  --muted: rgba(255,255,255,0.18);
-  --panel: rgba(5,18,10,0.92);
-  --seat-w: 180px;
-  --seat-h: 140px;
-
-  /* Dynamic fit vars set by JS */
-  --scale: 1;
-  --card-w: 58px;
-  --card-h: 82px;
-  --card-r: 5px;
+  --felt:   #0d2b1a;
+  --felt2:  #0a2316;
+  --green:  #1a4a2e;
+  --green2: #245f3a;
+  --gold:   #c9a84c;
+  --gold2:  #f0d07a;
+  --gold3:  #8a6a1e;
+  --cream:  #f5e6c8;
+  --red:    #c0392b;
+  --red2:   #e74c3c;
+  --dark:   #060f08;
+  --card-bg:#fffef5;
+  --shadow: rgba(0,0,0,.7);
+  --glow:   rgba(201,168,76,.35);
+  --radius: 12px;
+  --transition: .25s cubic-bezier(.4,0,.2,1);
 }
 
-html, body {
-  width: 100%; height: 100%;
-  background: var(--dark);
-  overflow: hidden;
-  font-family: 'Barlow Condensed', sans-serif;
-  color: var(--cream);
-  -webkit-font-smoothing: antialiased;
-  touch-action: manipulation;
+/* ══ RESET ══ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--dark)}
+body{font-family:'Cinzel',serif;color:var(--cream);overscroll-behavior:none}
+
+/* ══ NOISE OVERLAY ══ */
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  opacity:.4
 }
 
-/* ═══════════════════════════════════════════
-   SCREENS
-═══════════════════════════════════════════ */
-.screen {
-  position: fixed; inset: 0;
-  display: flex; align-items: center; justify-content: center;
-  z-index: 10;
-  transition: opacity 0.4s ease;
-}
-.screen.hidden { opacity: 0; pointer-events: none; }
+/* ══ SCREEN MANAGER ══ */
+.screen{display:none;position:fixed;inset:0;z-index:10}
+.screen.active{display:flex;flex-direction:column;align-items:center;justify-content:center}
 
-/* ─ LOBBY ─ */
-#screen-lobby {
-  background: radial-gradient(ellipse at 30% 60%, #0d3320 0%, #050d07 70%);
-  flex-direction: column;
-  gap: 0;
+/* ══════════════════ SPLASH ══════════════════ */
+#screen-splash{
+  background:radial-gradient(ellipse at 50% 40%, #1a4a2e 0%, #060f08 70%);
 }
+.splash-logo{text-align:center;animation:fadeUp .8s ease both}
+.splash-logo .title-hindi{
+  font-family:'Noto Serif Devanagari',serif;font-size:clamp(2rem,8vw,4.5rem);
+  color:var(--gold2);text-shadow:0 0 40px var(--glow),0 2px 0 #000;letter-spacing:.05em
+}
+.splash-logo .title-en{
+  font-family:'Cinzel Decorative',serif;font-size:clamp(.8rem,3vw,1.4rem);
+  color:var(--cream);letter-spacing:.5em;opacity:.7;margin-top:.3em
+}
+.splash-cards{display:flex;gap:8px;justify-content:center;margin:2rem 0;
+  animation:fadeUp .9s .2s ease both}
+.splash-card{
+  width:52px;height:78px;background:var(--card-bg);border-radius:6px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.6rem;box-shadow:0 4px 20px rgba(0,0,0,.5);
+  animation:cardFloat 3s ease-in-out infinite
+}
+.splash-card:nth-child(2){animation-delay:.3s}
+.splash-card:nth-child(3){animation-delay:.6s}
+.splash-card.red{color:#c0392b}
 
-.lobby-logo {
-  font-family: 'Bebas Neue', cursive;
-  font-size: clamp(52px, 10vw, 96px);
-  letter-spacing: 0.12em;
-  background: linear-gradient(135deg, var(--gold) 0%, var(--gold2) 50%, var(--gold) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-shadow: none;
-  line-height: 0.9;
-  margin-bottom: 4px;
+.btn-primary{
+  display:inline-flex;align-items:center;gap:.5em;
+  background:linear-gradient(135deg,var(--gold) 0%,var(--gold2) 50%,var(--gold) 100%);
+  color:var(--dark);border:none;border-radius:var(--radius);padding:.85em 2.2em;
+  font-family:'Cinzel',serif;font-weight:700;font-size:1rem;cursor:pointer;
+  box-shadow:0 4px 20px rgba(201,168,76,.4),inset 0 1px 0 rgba(255,255,255,.3);
+  transition:var(--transition);letter-spacing:.1em;text-transform:uppercase
 }
-.lobby-sub {
-  font-family: 'Space Mono', monospace;
-  font-size: 11px;
-  letter-spacing: 0.3em;
-  color: rgba(201,168,76,0.55);
-  text-transform: uppercase;
-  margin-bottom: 36px;
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(201,168,76,.6)}
+.btn-primary:active{transform:translateY(0)}
+.btn-ghost{
+  background:transparent;border:1px solid rgba(201,168,76,.4);color:var(--gold2);
+  border-radius:var(--radius);padding:.7em 1.6em;font-family:'Cinzel',serif;
+  font-weight:600;font-size:.9rem;cursor:pointer;transition:var(--transition);letter-spacing:.08em
 }
+.btn-ghost:hover{border-color:var(--gold2);background:rgba(201,168,76,.08)}
+.btn-danger{
+  background:linear-gradient(135deg,#8b0000,var(--red2));color:#fff;border:none;
+  border-radius:var(--radius);padding:.7em 1.6em;font-family:'Cinzel',serif;
+  font-weight:700;font-size:.9rem;cursor:pointer;transition:var(--transition)
+}
+.btn-danger:hover{filter:brightness(1.15)}
 
-.lobby-card {
-  background: var(--panel);
-  border: 1px solid rgba(201,168,76,0.2);
-  border-radius: 12px;
-  padding: 28px 36px;
-  width: min(380px, 90vw);
-  display: flex; flex-direction: column; gap: 14px;
-}
-
-.lobby-row {
-  display: flex; gap: 10px; align-items: center;
-}
-
-.id-badge {
-  background: rgba(201,168,76,0.12);
-  border: 1px solid rgba(201,168,76,0.3);
-  border-radius: 6px;
-  padding: 10px 16px;
-  font-family: 'Space Mono', monospace;
-  font-size: 22px;
-  color: var(--gold2);
-  letter-spacing: 0.15em;
-  flex: 1;
-  text-align: center;
-}
-
-.btn {
-  display: inline-flex; align-items: center; justify-content: center;
-  gap: 6px;
-  padding: 11px 20px;
-  border: none; border-radius: 7px;
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: all 0.18s ease;
-  white-space: nowrap;
-  -webkit-tap-highlight-color: transparent;
-}
-.btn:active { transform: scale(0.96); }
-
-.btn-gold {
-  background: linear-gradient(135deg, #b8922a, var(--gold) 50%, #b8922a);
-  color: #1a0d00;
-}
-.btn-gold:hover { background: linear-gradient(135deg, var(--gold), var(--gold2) 50%, var(--gold)); }
-
-.btn-outline {
-  background: transparent;
-  border: 1px solid rgba(201,168,76,0.4);
-  color: var(--gold);
-}
-.btn-outline:hover { border-color: var(--gold); background: rgba(201,168,76,0.08); }
-
-.btn-red {
-  background: linear-gradient(135deg, #8b1a1a, var(--red));
-  color: white;
-}
-.btn-danger { background: #7f1d1d; color: white; border: 1px solid #c0392b; }
-.btn-sm { padding: 7px 14px; font-size: 13px; }
-.btn-block { width: 100%; }
-.btn-icon { padding: 10px; min-width: 40px; }
-.btn:disabled { opacity: 0.4; pointer-events: none; }
-
-.divider {
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(201,168,76,0.25), transparent);
-  margin: 4px 0;
-}
-
-.input-field {
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.15);
-  border-radius: 7px;
-  padding: 10px 14px;
-  color: var(--cream);
-  font-family: 'Space Mono', monospace;
-  font-size: 15px;
-  outline: none;
-  flex: 1;
-  transition: border-color 0.2s;
-}
-.input-field:focus { border-color: var(--gold); }
-.input-field::placeholder { color: rgba(255,255,255,0.3); }
-
-/* ─ FIT SCREEN BUTTON ─ */
-#btn-fit {
-  position: fixed; bottom: 14px; right: 14px;
-  z-index: 9999;
-  background: rgba(0,0,0,0.7);
-  border: 1px solid rgba(201,168,76,0.3);
-  border-radius: 8px;
-  padding: 8px 12px;
-  color: var(--gold);
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  cursor: pointer;
-  display: flex; align-items: center; gap: 6px;
-  -webkit-tap-highlight-color: transparent;
-  transition: all 0.2s;
-}
-#btn-fit:hover { border-color: var(--gold); }
-#btn-fit svg { width: 14px; height: 14px; }
-
-/* ═══════════════════════════════════════════
-   GAME TABLE
-═══════════════════════════════════════════ */
-#game-table {
-  position: fixed; inset: 0;
-  display: none;
-  overflow: hidden;
-}
-#game-table.active { display: block; }
-
-/* Felt cloth */
-.felt-bg {
-  position: absolute; inset: 0;
+/* ══════════════════ LOBBY / TABLE ══════════════════ */
+#screen-game{
   background:
-    radial-gradient(ellipse 70% 55% at 50% 50%, #1a5c34 0%, #0d3320 55%, #061910 100%);
-}
-.felt-grain {
-  position: absolute; inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-  background-size: 200px 200px;
-  opacity: 0.5;
-  pointer-events: none;
+    radial-gradient(ellipse 80% 60% at 50% 50%, var(--green) 0%, var(--felt) 50%, var(--felt2) 100%);
+  overflow:hidden
 }
 
-/* Table oval border */
-.table-oval {
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  width: 78%; height: 72%;
-  border: 3px solid rgba(201,168,76,0.25);
-  border-radius: 50%;
-  pointer-events: none;
+/* ── Header bar ── */
+.header-bar{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:.6rem 1rem;background:rgba(6,15,8,.85);backdrop-filter:blur(10px);
+  border-bottom:1px solid rgba(201,168,76,.2)
 }
-.table-oval::before {
-  content: '';
-  position: absolute; inset: 6px;
-  border: 1px solid rgba(201,168,76,0.1);
-  border-radius: 50%;
+.header-logo{font-family:'Cinzel Decorative',serif;font-size:1rem;color:var(--gold);letter-spacing:.2em}
+.header-id{
+  font-size:.75rem;color:rgba(245,230,200,.5);letter-spacing:.1em;
+  background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.2);
+  border-radius:20px;padding:.2em .7em
+}
+.header-right{display:flex;gap:.5rem;align-items:center}
+.icon-btn{
+  background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.2);color:var(--gold2);
+  border-radius:8px;padding:.4em .6em;cursor:pointer;font-size:1.1rem;transition:var(--transition)
+}
+.icon-btn:hover{background:rgba(201,168,76,.2)}
+
+/* ── Table ── */
+.table-wrap{
+  position:relative;width:min(90vw,480px);height:min(85vh,600px);margin:auto;
+  display:flex;align-items:center;justify-content:center
+}
+.table-felt{
+  position:absolute;width:88%;height:72%;
+  background:radial-gradient(ellipse at center, var(--green2) 0%, var(--green) 60%, #0d2b1a 100%);
+  border-radius:50%;box-shadow:
+    0 0 0 6px var(--gold3),0 0 0 10px rgba(201,168,76,.15),
+    0 20px 60px rgba(0,0,0,.6),inset 0 0 40px rgba(0,0,0,.3);
+  border:2px solid var(--gold3)
+}
+.table-felt::after{
+  content:'';position:absolute;inset:8px;border-radius:50%;
+  border:1px solid rgba(201,168,76,.15)
 }
 
-/* Center pot label */
-.center-info {
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center;
-  pointer-events: none;
-  z-index: 5;
+/* ── Seats ── */
+.seat{
+  position:absolute;display:flex;flex-direction:column;align-items:center;gap:6px;
+  transition:var(--transition)
 }
-.center-badge {
-  background: rgba(5,18,10,0.85);
-  border: 1px solid rgba(201,168,76,0.3);
-  border-radius: 50%;
-  width: 72px; height: 72px;
-  display: flex; align-items: center; justify-content: center;
-  flex-direction: column;
-  backdrop-filter: blur(8px);
+.seat[data-pos="bottom"]{bottom:-10px;left:50%;transform:translateX(-50%)}
+.seat[data-pos="top"]{top:-10px;left:50%;transform:translateX(-50%)}
+.seat[data-pos="left"]{left:-30px;top:50%;transform:translateY(-50%)}
+.seat[data-pos="right"]{right:-30px;top:50%;transform:translateY(-50%)}
+
+.seat-avatar{
+  width:64px;height:64px;border-radius:50%;
+  background:linear-gradient(135deg,var(--gold3) 0%,var(--gold2) 100%);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.5rem;font-weight:700;color:var(--dark);
+  box-shadow:0 4px 16px var(--glow),0 0 0 3px var(--gold3);
+  position:relative;cursor:default
 }
-.center-session {
-  font-family: 'Bebas Neue', cursive;
-  font-size: 22px;
-  color: var(--gold2);
-  line-height: 1;
+.seat-avatar.host::after{
+  content:'♛';position:absolute;top:-8px;right:-4px;font-size:.9rem;
+  color:var(--gold2);text-shadow:0 0 8px var(--glow)
 }
-.center-label {
-  font-size: 9px;
-  letter-spacing: 0.2em;
-  color: rgba(201,168,76,0.5);
-  text-transform: uppercase;
+.seat-avatar.offline{filter:grayscale(.8);opacity:.6}
+.seat-label{
+  font-size:.7rem;letter-spacing:.08em;color:var(--gold2);
+  background:rgba(0,0,0,.6);border-radius:10px;padding:.15em .5em;
+  white-space:nowrap;max-width:80px;overflow:hidden;text-overflow:ellipsis
+}
+.seat-score{font-size:.65rem;color:rgba(245,230,200,.6);text-align:center}
+
+.seat-plus{
+  width:64px;height:64px;border-radius:50%;
+  border:2px dashed rgba(201,168,76,.4);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.8rem;color:rgba(201,168,76,.5);cursor:pointer;
+  transition:var(--transition);background:rgba(201,168,76,.05)
+}
+.seat-plus:hover{border-color:var(--gold2);color:var(--gold2);background:rgba(201,168,76,.12);transform:scale(1.05)}
+
+/* ── Center table area ── */
+.table-center{
+  position:relative;z-index:2;display:flex;flex-direction:column;
+  align-items:center;gap:8px
+}
+.room-code{
+  font-family:'Cinzel Decorative',serif;font-size:.8rem;color:var(--gold);
+  letter-spacing:.3em;opacity:.7
+}
+.table-action-area{display:flex;flex-direction:column;align-items:center;gap:8px}
+
+/* ── Lobby controls ── */
+.lobby-controls{display:flex;flex-direction:column;align-items:center;gap:.6rem}
+.win-mode-wrap{display:flex;align-items:center;gap:.6rem;font-size:.75rem;color:var(--cream)}
+.toggle{position:relative;width:46px;height:24px;cursor:pointer}
+.toggle input{display:none}
+.toggle-track{
+  position:absolute;inset:0;background:rgba(255,255,255,.15);border-radius:12px;
+  transition:var(--transition);border:1px solid rgba(201,168,76,.3)
+}
+.toggle input:checked~.toggle-track{background:linear-gradient(135deg,var(--gold3),var(--gold))}
+.toggle-thumb{
+  position:absolute;top:3px;left:3px;width:18px;height:18px;
+  background:#fff;border-radius:50%;transition:var(--transition);
+  box-shadow:0 1px 4px rgba(0,0,0,.3)
+}
+.toggle input:checked~.toggle-thumb{left:25px}
+
+/* ══════════════════ CARDS HAND ══════════════════ */
+.hand-panel{
+  position:fixed;bottom:0;left:0;right:0;z-index:50;
+  background:linear-gradient(0deg,rgba(6,15,8,.98) 0%,rgba(6,15,8,.85) 80%,transparent 100%);
+  padding:1rem 1rem 1.2rem;transition:transform .3s ease
+}
+.hand-panel.collapsed{transform:translateY(calc(100% - 56px))}
+.hand-toggle{
+  width:40px;height:4px;background:rgba(201,168,76,.4);border-radius:2px;
+  margin:0 auto .8rem;cursor:pointer;transition:var(--transition)
+}
+.hand-toggle:hover{background:var(--gold)}
+.hand-title{
+  font-size:.7rem;letter-spacing:.2em;color:var(--gold);opacity:.7;
+  text-align:center;text-transform:uppercase;margin-bottom:.6rem
+}
+.cards-row{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+
+/* ── Single card ── */
+.card{
+  width:48px;height:70px;background:var(--card-bg);border-radius:6px;
+  display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;
+  padding:3px;font-size:.65rem;font-weight:700;
+  box-shadow:0 2px 8px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.8);
+  cursor:grab;user-select:none;transition:var(--transition);position:relative;
+  border:1.5px solid rgba(0,0,0,.08);flex-shrink:0
+}
+.card:hover{transform:translateY(-4px);box-shadow:0 8px 20px rgba(0,0,0,.5)}
+.card.selected{
+  transform:translateY(-8px);
+  box-shadow:0 8px 20px var(--glow),0 0 0 2px var(--gold);
+}
+.card.red-suit{color:#c0392b}
+.card.black-suit{color:#1a1a1a}
+.card-rank{font-size:.8rem;line-height:1}
+.card-suit{font-size:1rem;text-align:center;flex:1;display:flex;align-items:center;justify-content:center}
+.card-back{
+  width:48px;height:70px;border-radius:6px;
+  background:linear-gradient(135deg,#0d2b1a,#1a4a2e);
+  border:2px solid var(--gold3);
+  display:flex;align-items:center;justify-content:center;font-size:1.2rem;
+  box-shadow:0 2px 8px rgba(0,0,0,.4);flex-shrink:0
 }
 
-/* ═══════════════════════════════════════════
-   SEAT POSITIONS
-═══════════════════════════════════════════ */
-.seat {
-  position: absolute;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  transition: all 0.4s ease;
+/* ── Sequences builder ── */
+.seq-builder{padding-top:.6rem;border-top:1px solid rgba(201,168,76,.15)}
+.seq-row{display:flex;gap:4px;align-items:center;margin-bottom:4px}
+.seq-label{font-size:.65rem;color:var(--gold);width:20px;text-align:center}
+.seq-slot{
+  width:48px;height:70px;border-radius:6px;
+  border:1.5px dashed rgba(201,168,76,.3);
+  display:flex;align-items:center;justify-content:center;
+  font-size:.7rem;color:rgba(245,230,200,.3);background:rgba(255,255,255,.03);
+  transition:var(--transition);cursor:pointer
+}
+.seq-slot:hover{border-color:var(--gold);background:rgba(201,168,76,.06)}
+.seq-slot.has-card{border-style:solid;border-color:rgba(201,168,76,.2)}
+.seq-type-badge{
+  font-size:.6rem;background:rgba(201,168,76,.15);color:var(--gold2);
+  border-radius:4px;padding:.1em .4em;margin-left:2px;white-space:nowrap
+}
+.seq-actions{display:flex;gap:.4rem;justify-content:center;margin-top:.6rem}
+
+/* ══════════════════ SESSION THROW ══════════════════ */
+.throw-panel{
+  position:fixed;bottom:0;left:0;right:0;z-index:60;
+  background:linear-gradient(0deg,rgba(6,15,8,.98),rgba(6,15,8,.9) 80%,transparent);
+  padding:1rem;display:none
+}
+.throw-panel.active{display:block}
+.throw-title{text-align:center;font-size:.75rem;letter-spacing:.2em;color:var(--gold);margin-bottom:.6rem}
+.throw-seq-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.throw-seq{
+  border:1px solid rgba(201,168,76,.3);border-radius:8px;padding:.4rem .6rem;
+  cursor:pointer;transition:var(--transition);background:rgba(255,255,255,.03);
+  display:flex;gap:4px;align-items:center
+}
+.throw-seq:hover{border-color:var(--gold2);background:rgba(201,168,76,.08)}
+.throw-seq.thrown{border-color:var(--gold);background:rgba(201,168,76,.15);cursor:not-allowed}
+
+/* ══════════════════ THROW REVEAL ══════════════════ */
+.reveal-overlay{
+  position:fixed;inset:0;z-index:200;
+  background:rgba(0,0,0,.85);backdrop-filter:blur(4px);
+  display:none;flex-direction:column;align-items:center;justify-content:center;gap:1.2rem
+}
+.reveal-overlay.active{display:flex}
+.reveal-title{font-family:'Cinzel Decorative',serif;font-size:1.2rem;color:var(--gold2);text-align:center}
+.reveal-cards-wrap{display:flex;gap:1.5rem;flex-wrap:wrap;justify-content:center}
+.reveal-player{text-align:center}
+.reveal-pname{font-size:.75rem;color:var(--cream);margin-bottom:.4rem}
+.reveal-pname.winner{color:var(--gold2);font-weight:700}
+.reveal-hand{display:flex;gap:4px;justify-content:center}
+.reveal-badge{
+  font-size:.7rem;margin-top:.4rem;color:var(--gold);
+  background:rgba(201,168,76,.15);border-radius:4px;padding:.1em .5em
+}
+.countdown-bar{
+  width:min(300px,80vw);height:4px;background:rgba(255,255,255,.1);border-radius:2px;overflow:hidden
+}
+.countdown-fill{height:100%;background:var(--gold);border-radius:2px;transition:width .1s linear}
+
+/* ══════════════════ NOTIFICATIONS ══════════════════ */
+#notif-stack{
+  position:fixed;top:60px;left:50%;transform:translateX(-50%);
+  z-index:300;display:flex;flex-direction:column;align-items:center;gap:8px;
+  pointer-events:none;width:min(380px,90vw)
+}
+.notif{
+  background:rgba(10,25,15,.95);border:1px solid rgba(201,168,76,.35);
+  border-left:3px solid var(--gold);border-radius:var(--radius);
+  padding:.6rem 1rem;font-size:.8rem;color:var(--cream);
+  box-shadow:0 4px 20px rgba(0,0,0,.5);
+  animation:notifIn .3s ease both;pointer-events:auto;max-width:100%;
+  display:flex;align-items:center;gap:.5rem
+}
+.notif.error{border-left-color:var(--red2)}
+.notif.success{border-left-color:#2ecc71}
+.notif.out{animation:notifOut .3s ease forwards}
+
+/* ══════════════════ INVITE MODAL ══════════════════ */
+.modal-backdrop{
+  position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);
+  display:none;align-items:center;justify-content:center
+}
+.modal-backdrop.active{display:flex}
+.modal{
+  background:linear-gradient(160deg,rgba(13,43,26,.98),rgba(6,15,8,.98));
+  border:1px solid rgba(201,168,76,.3);border-radius:16px;
+  padding:2rem;width:min(360px,90vw);position:relative;
+  box-shadow:0 20px 60px rgba(0,0,0,.7),0 0 0 1px rgba(201,168,76,.1)
+}
+.modal-close{
+  position:absolute;top:.8rem;right:.8rem;background:none;border:none;
+  color:rgba(245,230,200,.4);font-size:1.2rem;cursor:pointer;transition:var(--transition)
+}
+.modal-close:hover{color:var(--cream)}
+.modal h3{font-family:'Cinzel Decorative',serif;font-size:1rem;color:var(--gold2);margin-bottom:1rem}
+.input-field{
+  width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(201,168,76,.25);
+  border-radius:8px;padding:.7em 1em;color:var(--cream);font-family:'Cinzel',serif;
+  font-size:.9rem;outline:none;transition:var(--transition)
+}
+.input-field:focus{border-color:var(--gold);background:rgba(255,255,255,.07)}
+.modal-btns{display:flex;gap:.6rem;margin-top:1rem}
+
+/* ── Incoming invite ── */
+.invite-card{
+  background:linear-gradient(135deg,rgba(13,43,26,.98),rgba(6,15,8,.98));
+  border:1px solid var(--gold3);border-radius:16px;padding:1.5rem;
+  width:min(320px,90vw);animation:inviteSlide .4s ease
+}
+.invite-ttl{height:3px;background:rgba(201,168,76,.2);border-radius:2px;margin:.8rem 0;overflow:hidden}
+.invite-ttl-fill{height:100%;background:var(--gold);transition:width .1s linear}
+.invite-from{text-align:center;margin-bottom:.8rem}
+.invite-from strong{color:var(--gold2);font-size:1.1rem}
+.invite-from p{font-size:.75rem;color:rgba(245,230,200,.6);margin-top:.2rem}
+
+/* ══════════════════ LEADERBOARD DRAWER ══════════════════ */
+.drawer{
+  position:fixed;top:0;right:0;bottom:0;width:min(320px,88vw);z-index:500;
+  background:linear-gradient(180deg,rgba(10,25,15,.99),rgba(6,15,8,.99));
+  border-left:1px solid rgba(201,168,76,.2);transform:translateX(100%);
+  transition:.35s cubic-bezier(.4,0,.2,1);overflow-y:auto;padding:1.5rem 1rem
+}
+.drawer.open{transform:translateX(0)}
+.drawer-overlay{
+  position:fixed;inset:0;z-index:499;background:rgba(0,0,0,.5);
+  display:none;backdrop-filter:blur(2px)
+}
+.drawer-overlay.open{display:block}
+.drawer h2{font-family:'Cinzel Decorative',serif;font-size:1rem;color:var(--gold2);
+  letter-spacing:.1em;margin-bottom:1.2rem;padding-bottom:.6rem;
+  border-bottom:1px solid rgba(201,168,76,.2)}
+.lb-row{
+  display:flex;align-items:center;gap:.6rem;padding:.5rem .4rem;
+  border-radius:8px;transition:var(--transition);margin-bottom:.3rem;
+  border-bottom:1px solid rgba(201,168,76,.06)
+}
+.lb-row:hover{background:rgba(201,168,76,.05)}
+.lb-rank{width:20px;font-size:.75rem;color:var(--gold3);text-align:center}
+.lb-name{flex:1;font-size:.85rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lb-scores{display:flex;gap:.4rem;font-size:.7rem}
+.lb-wins{
+  background:rgba(201,168,76,.15);color:var(--gold2);
+  border-radius:4px;padding:.1em .5em
+}
+.lb-kitti{background:rgba(192,57,43,.15);color:#e88;border-radius:4px;padding:.1em .5em}
+.lb-round-table{width:100%;font-size:.7rem;border-collapse:collapse;margin-top:.4rem}
+.lb-round-table th{color:var(--gold3);font-weight:600;text-align:left;padding:.3em .4em;border-bottom:1px solid rgba(201,168,76,.15)}
+.lb-round-table td{padding:.3em .4em;color:rgba(245,230,200,.7);border-bottom:1px solid rgba(255,255,255,.04)}
+
+/* ── Nickname edit ── */
+.nick-edit{display:flex;align-items:center;gap:.4rem}
+.nick-edit-input{
+  flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(201,168,76,.2);
+  border-radius:6px;padding:.3em .5em;color:var(--cream);font-size:.8rem;
+  font-family:'Cinzel',serif;outline:none
+}
+.nick-save{
+  background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.3);
+  color:var(--gold2);border-radius:6px;padding:.3em .5em;cursor:pointer;font-size:.7rem
 }
 
-/* Bottom (self) */
-.seat[data-pos="bottom"] {
-  bottom: 8px; left: 50%;
-  transform: translateX(-50%);
-  width: 100%;
-  max-width: 600px;
-  align-items: center;
+/* ══════════════════ GAME OVER ══════════════════ */
+.gameover-overlay{
+  position:fixed;inset:0;z-index:600;
+  background:radial-gradient(ellipse at center,rgba(10,35,20,.97) 0%,rgba(0,0,0,.97) 100%);
+  display:none;flex-direction:column;align-items:center;justify-content:center;gap:1rem;
+  backdrop-filter:blur(8px)
 }
+.gameover-overlay.active{display:flex}
+.gameover-title{
+  font-family:'Cinzel Decorative',serif;font-size:clamp(1.5rem,6vw,2.5rem);
+  color:var(--gold2);text-shadow:0 0 40px var(--glow);animation:pulse 1.5s ease infinite
+}
+.gameover-winner{font-size:1.2rem;color:var(--cream);text-align:center}
+.gameover-kitti{color:var(--red2);font-size:.9rem}
 
-/* Left */
-.seat[data-pos="left"] {
-  top: 50%; left: 20px;
-  transform: translateY(-50%);
+/* ══════════════════ STATUS BAR ══════════════════ */
+.status-bar{
+  position:fixed;bottom:0;left:0;right:0;height:3px;z-index:1000;
+  background:linear-gradient(90deg,var(--gold3),var(--gold),var(--gold3));
+  opacity:0;transition:opacity .3s
 }
+.status-bar.visible{opacity:1}
 
-/* Right */
-.seat[data-pos="right"] {
-  top: 50%; right: 20px;
-  transform: translateY(-50%);
-}
+/* ══════════════════ KEYFRAMES ══════════════════ */
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+@keyframes cardFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes notifIn{from{opacity:0;transform:translateY(-12px) scale(.97)}to{opacity:1;transform:none}}
+@keyframes notifOut{to{opacity:0;transform:translateY(-8px) scale(.96)}}
+@keyframes inviteSlide{from{opacity:0;transform:scale(.93)}to{opacity:1;transform:scale(1)}}
+@keyframes pulse{0%,100%{text-shadow:0 0 20px var(--glow)}50%{text-shadow:0 0 50px rgba(201,168,76,.7)}}
+@keyframes throwBounce{0%{transform:scale(1)}40%{transform:scale(1.15)}100%{transform:scale(1)}}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
 
-/* Top */
-.seat[data-pos="top"] {
-  top: 8px; left: 50%;
-  transform: translateX(-50%);
-  width: 100%; max-width: 500px;
-  align-items: center;
-  flex-direction: column-reverse;
+/* ══════════════════ CONNECTION BADGE ══════════════════ */
+.conn-badge{
+  display:flex;align-items:center;gap:.3rem;font-size:.65rem;
+  padding:.15em .5em;border-radius:10px;transition:var(--transition)
 }
+.conn-dot{width:6px;height:6px;border-radius:50%}
+.conn-badge.online{background:rgba(46,204,113,.1);color:#2ecc71;border:1px solid rgba(46,204,113,.3)}
+.conn-badge.online .conn-dot{background:#2ecc71;box-shadow:0 0 6px #2ecc71}
+.conn-badge.offline{background:rgba(231,76,60,.1);color:var(--red2);border:1px solid rgba(231,76,60,.3)}
+.conn-badge.offline .conn-dot{background:var(--red2)}
 
-/* Empty seat */
-.seat-empty {
-  width: 90px; height: 70px;
-  border: 2px dashed rgba(201,168,76,0.25);
-  border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s;
-  background: rgba(201,168,76,0.04);
+/* ══════════════════ MISC ══════════════════ */
+.divider{width:100%;height:1px;background:rgba(201,168,76,.1);margin:.6rem 0}
+.hint{font-size:.65rem;color:rgba(245,230,200,.4);text-align:center;letter-spacing:.05em}
+.session-indicator{
+  display:flex;gap:6px;justify-content:center
 }
-.seat-empty:hover { border-color: rgba(201,168,76,0.6); background: rgba(201,168,76,0.1); }
-.seat-empty span {
-  font-size: 28px;
-  color: rgba(201,168,76,0.4);
-  line-height: 1;
-  pointer-events: none;
+.session-dot{
+  width:10px;height:10px;border-radius:50%;
+  background:rgba(255,255,255,.15);border:1px solid rgba(201,168,76,.3);transition:var(--transition)
 }
+.session-dot.won{background:var(--gold);border-color:var(--gold2);box-shadow:0 0 8px var(--glow)}
+.session-dot.active{background:rgba(201,168,76,.4);border-color:var(--gold2);animation:pulse 1s ease infinite}
 
-/* Player nameplate */
-.nameplate {
-  background: rgba(5,18,10,0.85);
-  border: 1px solid rgba(201,168,76,0.25);
-  border-radius: 6px;
-  padding: 4px 12px;
-  display: flex; align-items: center; gap: 8px;
-  backdrop-filter: blur(4px);
-  white-space: nowrap;
+.player-throw-indicator{
+  position:absolute;top:-4px;right:-4px;width:14px;height:14px;border-radius:50%;
+  background:var(--gold);border:2px solid var(--dark);display:none;
+  align-items:center;justify-content:center;font-size:.5rem
 }
-.nameplate-id {
-  font-family: 'Space Mono', monospace;
-  font-size: 10px;
-  color: rgba(201,168,76,0.5);
-}
-.nameplate-name {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--cream);
-}
-.nameplate-online {
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  background: #2ecc71;
-  flex-shrink: 0;
-}
-.nameplate-online.offline { background: #e74c3c; }
-.nameplate .score-dots {
-  display: flex; gap: 3px; margin-left: 4px;
-}
-.score-dot {
-  width: 8px; height: 8px;
-  border-radius: 50%;
-  border: 1px solid rgba(201,168,76,0.4);
-  background: transparent;
-}
-.score-dot.filled { background: var(--gold); border-color: var(--gold); }
+.player-throw-indicator.show{display:flex}
 
-/* ═══════════════════════════════════════════
-   CARDS
-═══════════════════════════════════════════ */
-.card-container {
-  display: flex; gap: 4px;
-  flex-wrap: nowrap;
-  justify-content: center;
-  position: relative;
+.thrower-crown{
+  position:absolute;bottom:-4px;left:50%;transform:translateX(-50%);
+  font-size:.6rem;animation:pulse 1s ease infinite
 }
-
-.card {
-  width: var(--card-w);
-  height: var(--card-h);
-  border-radius: var(--card-r);
-  position: relative;
-  cursor: pointer;
-  transition: transform 0.18s ease, box-shadow 0.18s ease;
-  flex-shrink: 0;
-  user-select: none;
-  -webkit-tap-highlight-color: transparent;
-}
-
-/* Face up */
-.card-face {
-  width: 100%; height: 100%;
-  background: #faf8f0;
-  border-radius: var(--card-r);
-  border: 1px solid rgba(0,0,0,0.12);
-  display: flex; flex-direction: column;
-  padding: 3px 4px;
-  overflow: hidden;
-  position: relative;
-}
-.card-face.red-card { color: #c0392b; }
-.card-face.black-card { color: #1a1a2e; }
-
-.card-corner {
-  line-height: 1;
-}
-.card-corner .cv { font-size: 13px; font-weight: 700; }
-.card-corner .cs { font-size: 11px; }
-
-.card-corner.top { align-self: flex-start; }
-.card-corner.bottom {
-  align-self: flex-end;
-  transform: rotate(180deg);
-  position: absolute;
-  bottom: 3px; right: 4px;
-}
-.card-center-suit {
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 22px;
-  opacity: 0.15;
-}
-
-/* Face down / back */
-.card-back {
-  width: 100%; height: 100%;
-  border-radius: var(--card-r);
-  background:
-    repeating-linear-gradient(
-      45deg,
-      rgba(201,168,76,0.12) 0px, rgba(201,168,76,0.12) 2px,
-      transparent 2px, transparent 10px
-    ),
-    linear-gradient(135deg, #0d3320, #1a5c34);
-  border: 1px solid rgba(201,168,76,0.3);
-  display: flex; align-items: center; justify-content: center;
-}
-.card-back-logo {
-  font-family: 'Bebas Neue', cursive;
-  font-size: 11px;
-  color: rgba(201,168,76,0.4);
-  letter-spacing: 0.15em;
-}
-
-.card.selected .card-face {
-  outline: 2px solid var(--gold2);
-  outline-offset: 1px;
-}
-.card.selected { transform: translateY(-10px); }
-
-/* Opponent hidden cards (small back face) */
-.cards-hidden {
-  display: flex; gap: 3px;
-}
-.card-mini-back {
-  width: 32px; height: 46px;
-  border-radius: 3px;
-  background: linear-gradient(135deg, #0d3320, #1a5c34);
-  border: 1px solid rgba(201,168,76,0.3);
-  flex-shrink: 0;
-}
-
-/* ═══════════════════════════════════════════
-   SEQUENCE SLOTS (arrange phase)
-═══════════════════════════════════════════ */
-.sequences-area {
-  display: flex; gap: 8px;
-  align-items: flex-end;
-  margin-bottom: 4px;
-}
-.seq-slot {
-  display: flex; gap: 2px;
-  border: 1.5px dashed rgba(201,168,76,0.3);
-  border-radius: 8px;
-  padding: 6px;
-  min-width: calc(var(--card-w) * 3 + 22px);
-  min-height: calc(var(--card-h) + 12px);
-  cursor: pointer;
-  transition: border-color 0.2s, background 0.2s;
-  position: relative;
-  background: rgba(0,0,0,0.2);
-}
-.seq-slot:hover { border-color: rgba(201,168,76,0.6); background: rgba(201,168,76,0.05); }
-.seq-slot.filled { border-style: solid; border-color: rgba(201,168,76,0.5); }
-.seq-slot-label {
-  position: absolute;
-  top: -9px; left: 8px;
-  font-size: 9px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: rgba(201,168,76,0.5);
-  background: var(--felt2);
-  padding: 0 4px;
-}
-.seq-power-badge {
-  position: absolute;
-  bottom: -10px; left: 50%;
-  transform: translateX(-50%);
-  white-space: nowrap;
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--gold);
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-.seq-slot.filled .seq-power-badge { opacity: 1; }
-
-/* Empty slot placeholder */
-.seq-empty-hint {
-  display: flex; align-items: center; justify-content: center;
-  width: 100%; height: 100%;
-  font-size: 11px;
-  color: rgba(201,168,76,0.25);
-  letter-spacing: 0.1em;
-  gap: 4px;
-  pointer-events: none;
-}
-
-/* ═══════════════════════════════════════════
-   THROW AREA (shown on table)
-═══════════════════════════════════════════ */
-.thrown-area {
-  display: flex; gap: 6px;
-  padding: 6px;
-  border-radius: 8px;
-  background: rgba(0,0,0,0.3);
-  border: 1px solid rgba(201,168,76,0.1);
-  min-height: calc(var(--card-h) + 12px);
-  align-items: center;
-}
-.thrown-seq {
-  display: flex; gap: 2px; align-items: center;
-}
-.thrown-sep {
-  width: 1px; height: 60px;
-  background: rgba(255,255,255,0.1);
-  margin: 0 2px;
-}
-
-/* ═══════════════════════════════════════════
-   TOP BAR
-═══════════════════════════════════════════ */
-#top-bar {
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 40px;
-  display: flex; align-items: center;
-  padding: 0 10px;
-  gap: 8px;
-  z-index: 50;
-  background: linear-gradient(to bottom, rgba(0,0,0,0.6), transparent);
-}
-
-.top-room-code {
-  font-family: 'Space Mono', monospace;
-  font-size: 11px;
-  color: rgba(201,168,76,0.6);
-  letter-spacing: 0.2em;
-}
-.top-room-code span {
-  color: var(--gold2);
-  font-weight: 700;
-  font-size: 13px;
-}
-.top-spacer { flex: 1; }
-.top-mode-badge {
-  font-size: 10px;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: rgba(255,255,255,0.4);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 4px;
-  padding: 2px 7px;
-}
-
-/* ═══════════════════════════════════════════
-   HAMBURGER / LEADERBOARD PANEL
-═══════════════════════════════════════════ */
-#ham-btn {
-  width: 32px; height: 32px;
-  display: flex; flex-direction: column;
-  justify-content: center; gap: 5px;
-  cursor: pointer;
-  padding: 4px;
-  -webkit-tap-highlight-color: transparent;
-}
-#ham-btn span {
-  display: block; height: 2px; border-radius: 2px;
-  background: rgba(201,168,76,0.7);
-  transition: all 0.2s;
-}
-#ham-btn:hover span { background: var(--gold2); }
-
-#lb-panel {
-  position: fixed;
-  top: 0; right: -100%;
-  width: 90vw; max-width: 320px;
-  height: 100vh;
-  background: var(--panel);
-  border-left: 1px solid rgba(201,168,76,0.2);
-  z-index: 200;
-  transition: right 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-  display: flex; flex-direction: column;
-  overflow: hidden;
-}
-#lb-panel.open { right: 0; }
-
-.lb-header {
-  padding: 16px 18px;
-  border-bottom: 1px solid rgba(201,168,76,0.15);
-  display: flex; align-items: center; gap: 10px;
-}
-.lb-title {
-  font-family: 'Bebas Neue', cursive;
-  font-size: 22px;
-  letter-spacing: 0.1em;
-  color: var(--gold2);
-  flex: 1;
-}
-.lb-close {
-  width: 28px; height: 28px;
-  border: none;
-  background: rgba(255,255,255,0.08);
-  border-radius: 5px;
-  color: var(--cream);
-  font-size: 16px;
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-}
-
-.lb-body { flex: 1; overflow-y: auto; padding: 14px 18px; display: flex; flex-direction: column; gap: 12px; }
-
-.lb-row {
-  display: flex; align-items: center; gap: 10px;
-  background: rgba(255,255,255,0.04);
-  border-radius: 8px;
-  padding: 10px 12px;
-  border: 1px solid rgba(255,255,255,0.06);
-}
-.lb-rank {
-  font-family: 'Bebas Neue', cursive;
-  font-size: 20px;
-  color: rgba(201,168,76,0.4);
-  width: 24px; text-align: center;
-}
-.lb-rank.gold-rank { color: var(--gold2); }
-.lb-player-info { flex: 1; min-width: 0; }
-.lb-player-name {
-  font-size: 15px; font-weight: 700;
-  color: var(--cream);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.lb-player-id {
-  font-family: 'Space Mono', monospace;
-  font-size: 9px;
-  color: rgba(255,255,255,0.3);
-}
-.lb-wins {
-  font-family: 'Bebas Neue', cursive;
-  font-size: 28px;
-  color: var(--gold2);
-  line-height: 1;
-}
-.lb-kitti-badges {
-  display: flex; gap: 2px; justify-content: flex-end;
-}
-.kitti-badge {
-  background: rgba(192,57,43,0.3);
-  border: 1px solid rgba(192,57,43,0.5);
-  border-radius: 3px;
-  font-size: 9px;
-  font-family: 'Space Mono', monospace;
-  color: #e74c3c;
-  padding: 1px 4px;
-}
-
-.lb-match-history { margin-top: 4px; }
-.lb-section-title {
-  font-size: 11px; letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: rgba(201,168,76,0.45);
-  margin-bottom: 8px;
-}
-.lb-match-row {
-  display: flex; gap: 6px;
-  font-size: 12px;
-  padding: 6px 8px;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
-  align-items: center;
-}
-.lb-match-num {
-  font-family: 'Space Mono', monospace;
-  font-size: 10px;
-  color: rgba(255,255,255,0.3);
-  width: 20px;
-}
-.lb-match-winner { font-weight: 600; flex: 1; }
-.lb-match-kitti { font-size: 10px; color: #e74c3c; font-family: 'Space Mono', monospace; }
-
-.lb-rename-section { margin-top: 8px; }
-.lb-rename-row {
-  display: flex; gap: 6px; align-items: center;
-  margin-bottom: 6px;
-}
-.lb-rename-who {
-  font-size: 12px; color: rgba(255,255,255,0.5);
-  width: 70px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
-.lb-rename-input {
-  flex: 1;
-  background: rgba(255,255,255,0.07);
-  border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 5px;
-  padding: 5px 8px;
-  color: var(--cream);
-  font-size: 13px;
-  font-family: 'Barlow Condensed', sans-serif;
-  outline: none;
-}
-.lb-rename-input:focus { border-color: var(--gold); }
-
-.lb-footer {
-  padding: 14px 18px;
-  border-top: 1px solid rgba(201,168,76,0.15);
-  display: flex; flex-direction: column; gap: 8px;
-}
-
-/* ═══════════════════════════════════════════
-   BOTTOM CONTROL BAR
-═══════════════════════════════════════════ */
-#ctrl-bar {
-  position: absolute;
-  bottom: 0; left: 0; right: 0;
-  padding: 6px 12px 8px;
-  display: flex; align-items: center; gap: 8px;
-  z-index: 50;
-  background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%);
-}
-
-.ctrl-spacer { flex: 1; }
-.phase-label {
-  font-size: 11px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: rgba(255,255,255,0.35);
-}
-
-/* ═══════════════════════════════════════════
-   MODALS
-═══════════════════════════════════════════ */
-.modal-overlay {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.75);
-  backdrop-filter: blur(4px);
-  z-index: 300;
-  display: flex; align-items: center; justify-content: center;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.25s;
-}
-.modal-overlay.visible {
-  opacity: 1;
-  pointer-events: all;
-}
-
-.modal-box {
-  background: linear-gradient(135deg, #0d2a18, #091910);
-  border: 1px solid rgba(201,168,76,0.3);
-  border-radius: 14px;
-  padding: 28px 32px;
-  width: min(400px, 92vw);
-  display: flex; flex-direction: column; gap: 16px;
-  transform: translateY(16px) scale(0.97);
-  transition: transform 0.25s;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
-}
-.modal-overlay.visible .modal-box {
-  transform: translateY(0) scale(1);
-}
-
-.modal-title {
-  font-family: 'Bebas Neue', cursive;
-  font-size: 28px;
-  letter-spacing: 0.1em;
-  color: var(--gold2);
-  line-height: 1;
-}
-.modal-subtitle {
-  font-size: 13px;
-  color: rgba(255,255,255,0.45);
-  margin-top: -8px;
-}
-.modal-body { display: flex; flex-direction: column; gap: 10px; }
-.modal-footer { display: flex; gap: 10px; justify-content: flex-end; }
-
-/* ─ INVITE MODAL ─ */
-.invite-incoming {
-  text-align: center;
-}
-.invite-from {
-  font-family: 'Bebas Neue', cursive;
-  font-size: 36px;
-  color: var(--gold2);
-}
-.invite-ttl-bar {
-  height: 3px;
-  background: rgba(201,168,76,0.15);
-  border-radius: 2px;
-  overflow: hidden;
-  margin-top: 4px;
-}
-.invite-ttl-fill {
-  height: 100%;
-  background: var(--gold);
-  border-radius: 2px;
-  transition: width linear;
-  width: 100%;
-}
-
-/* ─ RESULT MODAL ─ */
-.result-modal-winner {
-  font-family: 'Bebas Neue', cursive;
-  font-size: 48px;
-  letter-spacing: 0.08em;
-  text-align: center;
-  color: var(--gold2);
-  text-shadow: 0 0 30px rgba(201,168,76,0.4);
-}
-.result-session-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-}
-.session-result-card {
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 8px;
-  padding: 10px;
-  text-align: center;
-}
-.session-result-num {
-  font-size: 10px; letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: rgba(255,255,255,0.35);
-  margin-bottom: 4px;
-}
-.session-result-win {
-  font-weight: 700; font-size: 14px;
-  color: var(--cream);
-}
-.session-result-win.kitti { color: #e74c3c; }
-
-/* ─ TOAST ─ */
-#toast-container {
-  position: fixed;
-  top: 14px; left: 50%;
-  transform: translateX(-50%);
-  z-index: 1000;
-  display: flex; flex-direction: column; gap: 6px;
-  align-items: center;
-  pointer-events: none;
-}
-.toast {
-  background: rgba(5,18,10,0.95);
-  border: 1px solid rgba(201,168,76,0.3);
-  border-radius: 8px;
-  padding: 9px 18px;
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  color: var(--cream);
-  white-space: nowrap;
-  animation: toastIn 0.25s ease forwards;
-  pointer-events: none;
-  max-width: 90vw;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.toast.toast-gold { border-color: var(--gold); color: var(--gold2); }
-.toast.toast-red { border-color: #c0392b; color: #e74c3c; }
-@keyframes toastIn {
-  from { opacity: 0; transform: translateY(-8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-@keyframes toastOut {
-  from { opacity: 1; }
-  to { opacity: 0; transform: translateY(-8px); }
-}
-
-/* ─ TURN INDICATOR ─ */
-.turn-highlight {
-  position: absolute; inset: 0;
-  border-radius: inherit;
-  background: radial-gradient(circle, rgba(201,168,76,0.2) 0%, transparent 70%);
-  animation: pulseGlow 1.5s ease-in-out infinite;
-  pointer-events: none;
-}
-@keyframes pulseGlow {
-  0%, 100% { opacity: 0.6; }
-  50% { opacity: 1; }
-}
-
-/* ─ OVERLAY SCREENS IN GAME ─ */
-.game-overlay {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.88);
-  backdrop-filter: blur(6px);
-  z-index: 150;
-  display: flex; align-items: center; justify-content: center;
-  flex-direction: column;
-  gap: 20px;
-  opacity: 0; pointer-events: none;
-  transition: opacity 0.3s;
-}
-.game-overlay.visible { opacity: 1; pointer-events: all; }
-
-.privacy-title {
-  font-family: 'Bebas Neue', cursive;
-  font-size: clamp(32px, 6vw, 56px);
-  color: var(--gold2);
-  letter-spacing: 0.08em;
-}
-.privacy-sub {
-  font-size: 14px; color: rgba(255,255,255,0.4);
-  letter-spacing: 0.15em; text-transform: uppercase;
-}
-
-/* ─ WAITING SPINNER ─ */
-.spinner {
-  width: 32px; height: 32px;
-  border: 2px solid rgba(201,168,76,0.2);
-  border-top-color: var(--gold);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* ─ MODE TOGGLE ─ */
-.toggle-row {
-  display: flex; align-items: center; gap: 10px;
-}
-.toggle-label {
-  font-size: 13px;
-  color: rgba(255,255,255,0.6);
-  flex: 1;
-}
-.toggle-switch {
-  position: relative;
-  width: 44px; height: 24px;
-  cursor: pointer;
-}
-.toggle-switch input { opacity: 0; width: 0; height: 0; }
-.toggle-track {
-  position: absolute; inset: 0;
-  background: rgba(255,255,255,0.12);
-  border-radius: 12px;
-  transition: background 0.2s;
-}
-.toggle-switch input:checked ~ .toggle-track { background: var(--gold); }
-.toggle-thumb {
-  position: absolute;
-  top: 3px; left: 3px;
-  width: 18px; height: 18px;
-  background: white;
-  border-radius: 50%;
-  transition: transform 0.2s;
-}
-.toggle-switch input:checked ~ .toggle-thumb { transform: translateX(20px); }
-
-/* ─ THROW PHASE UI ─ */
-.throw-seq-options {
-  display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;
-}
-.throw-option-card {
-  background: rgba(255,255,255,0.06);
-  border: 1.5px solid rgba(201,168,76,0.3);
-  border-radius: 10px;
-  padding: 10px 14px;
-  cursor: pointer;
-  transition: all 0.18s;
-  display: flex; flex-direction: column; gap: 4px;
-  align-items: center;
-}
-.throw-option-card:hover { border-color: var(--gold); background: rgba(201,168,76,0.1); }
-.throw-option-label {
-  font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase;
-  color: rgba(201,168,76,0.5);
-}
-.throw-option-type {
-  font-size: 13px; font-weight: 700; color: var(--gold2);
-}
-.throw-option-mini {
-  display: flex; gap: 2px;
-}
-
-/* Scrollbar */
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.25); border-radius: 2px; }
-
-/* ─ ORIENTATION WARNING ─ */
-#orient-warn {
-  position: fixed; inset: 0;
-  background: #050d07;
-  z-index: 10000;
-  display: none;
-  align-items: center; justify-content: center;
-  flex-direction: column;
-  gap: 14px;
-  text-align: center;
-  padding: 30px;
-}
-#orient-warn.show { display: flex; }
-#orient-warn svg {
-  width: 48px; height: 48px;
-  color: var(--gold);
-  animation: rotateHint 1.5s ease-in-out infinite;
-}
-@keyframes rotateHint {
-  0%, 100% { transform: rotate(0deg); }
-  50% { transform: rotate(90deg); }
-}
-#orient-warn p {
-  font-size: 15px; color: rgba(255,255,255,0.6); line-height: 1.5;
-}
-
-/* Overlay backdrop for panel */
-#lb-backdrop {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.5);
-  z-index: 199;
-  display: none;
-}
-#lb-backdrop.show { display: block; }
-
-/* HOST BADGE */
-.host-crown {
-  font-size: 10px;
-  color: var(--gold);
-  position: absolute;
-  top: -8px; left: 50%; transform: translateX(-50%);
-}
-
-/* Connection status */
-#conn-status {
-  position: fixed; bottom: 40px; left: 10px;
-  font-size: 10px; letter-spacing: 0.15em;
-  color: rgba(255,255,255,0.25);
-  z-index: 999;
-  display: flex; align-items: center; gap: 5px;
-}
-#conn-dot {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: #2ecc71;
-}
-#conn-dot.bad { background: #e74c3c; animation: blink 1s infinite; }
-@keyframes blink { 50% { opacity: 0.3; } }
-
 </style>
 </head>
 <body>
 
-<!-- ─ ORIENTATION WARNING ─ -->
-<div id="orient-warn">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-    <rect x="3" y="7" width="18" height="14" rx="2"/>
-    <path d="M7 7V5a2 2 0 012-2h6a2 2 0 012 2v2"/>
-  </svg>
-  <p>KITTI plays in <strong>landscape</strong> mode.<br>Please rotate your device.</p>
+<!-- ══ SPLASH ══ -->
+<div id="screen-splash" class="screen active">
+  <div class="splash-logo">
+    <div class="title-hindi">तीन पत्ती</div>
+    <div class="title-en">K I T T I &nbsp; E D I T I O N</div>
+  </div>
+  <div class="splash-cards">
+    <div class="splash-card red">♥</div>
+    <div class="splash-card">♠</div>
+    <div class="splash-card red">♦</div>
+  </div>
+  <button class="btn-primary" onclick="App.enterGame()">▶ &nbsp;Enter Table</button>
+  <p class="hint" style="margin-top:1rem">Your ID is remembered across sessions</p>
 </div>
 
-<!-- ─ LOBBY ─ -->
-<div class="screen" id="screen-lobby">
-  <div style="display:flex;flex-direction:column;align-items:center;">
-    <div class="lobby-logo">KITTI</div>
-    <div class="lobby-sub">Nine Card · Teen Patti</div>
-    <div class="lobby-card">
-      <div style="display:flex;align-items:center;gap:8px;">
-        <div class="lobby-sub" style="margin:0;font-size:10px;">YOUR ID</div>
-        <div class="id-badge" id="my-id-display">——</div>
-        <button class="btn btn-outline btn-sm btn-icon" onclick="copyId()" title="Copy ID">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
-          </svg>
-        </button>
+<!-- ══ GAME SCREEN ══ -->
+<div id="screen-game" class="screen">
+
+  <!-- Header -->
+  <div class="header-bar">
+    <div class="header-logo">♣ Kitti</div>
+    <div class="header-id" id="hdr-id">—</div>
+    <div class="header-right">
+      <div class="conn-badge offline" id="conn-badge">
+        <div class="conn-dot"></div><span>offline</span>
       </div>
-      <div class="divider"></div>
-      <button class="btn btn-gold btn-block" onclick="createRoom()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
-        CREATE ROOM (Host)
-      </button>
-      <div style="display:flex;gap:8px;align-items:center;">
-        <div class="input-field" id="join-room-input" contenteditable="true" style="min-height:38px;line-height:1.8;text-transform:uppercase;letter-spacing:0.15em;" data-placeholder="Room Code"></div>
-        <button class="btn btn-outline" onclick="joinViaCode()" style="white-space:nowrap;">JOIN</button>
+      <button class="icon-btn" onclick="UI.toggleDrawer(true)" title="Leaderboard">☰</button>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrap" id="table-wrap">
+    <div class="table-felt"></div>
+
+    <!-- Seats (up to 3) -->
+    <div class="seat" id="seat-bottom" data-pos="bottom">
+      <div class="seat-avatar" id="av-bottom">?</div>
+      <div class="seat-label" id="lb-bottom">—</div>
+      <div class="seat-score" id="sc-bottom"></div>
+    </div>
+
+    <div class="seat" id="seat-left" data-pos="left">
+      <div id="av-left-wrap"></div>
+    </div>
+
+    <div class="seat" id="seat-right" data-pos="right">
+      <div id="av-right-wrap"></div>
+    </div>
+
+    <!-- Table center -->
+    <div class="table-center">
+      <div class="room-code" id="room-code-display">no room</div>
+      <div class="session-indicator" id="session-dots">
+        <div class="session-dot" id="sdot-0"></div>
+        <div class="session-dot" id="sdot-1"></div>
+        <div class="session-dot" id="sdot-2"></div>
       </div>
-      <div id="lobby-status" style="font-size:12px;color:rgba(255,255,255,0.35);text-align:center;min-height:16px;"></div>
+      <div class="table-action-area" id="table-action">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Hand panel (lobby/game) -->
+  <div class="hand-panel" id="hand-panel">
+    <div class="hand-toggle" id="hand-toggle" onclick="UI.toggleHand()"></div>
+    <div class="hand-title" id="hand-title">YOUR HAND</div>
+    <div id="hand-content"></div>
+  </div>
+
+  <!-- Throw panel -->
+  <div class="throw-panel" id="throw-panel">
+    <div class="throw-title">SELECT SEQUENCE TO THROW</div>
+    <div class="throw-seq-row" id="throw-seq-row"></div>
+  </div>
+
+</div><!-- /screen-game -->
+
+<!-- ══ NOTIFICATION STACK ══ -->
+<div id="notif-stack"></div>
+
+<!-- ══ INVITE MODAL (send) ══ -->
+<div class="modal-backdrop" id="invite-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="UI.closeModal('invite-modal')">✕</button>
+    <h3>Invite Player</h3>
+    <input class="input-field" id="invite-input" placeholder="Enter Player ID (e.g. 4447)" maxlength="6"/>
+    <div class="modal-btns">
+      <button class="btn-ghost" onclick="UI.closeModal('invite-modal')">Cancel</button>
+      <button class="btn-primary" onclick="App.sendInvite()">Send Invite ➤</button>
+    </div>
+    <p class="hint" style="margin-top:.6rem">Player must be online and not in another room</p>
+  </div>
+</div>
+
+<!-- ══ INCOMING INVITE MODAL ══ -->
+<div class="modal-backdrop" id="incoming-invite-modal">
+  <div class="invite-card">
+    <div class="invite-from">
+      <div style="font-size:1.5rem;margin-bottom:.4rem">🃏</div>
+      <strong id="invite-from-name">Someone</strong>
+      <p>is inviting you to their table</p>
+    </div>
+    <div class="invite-ttl"><div class="invite-ttl-fill" id="invite-ttl-fill" style="width:100%"></div></div>
+    <div class="modal-btns">
+      <button class="btn-danger" onclick="App.respondInvite(false)">Decline</button>
+      <button class="btn-primary" onclick="App.respondInvite(true)">Accept ➤</button>
     </div>
   </div>
 </div>
 
-<!-- ─ GAME TABLE ─ -->
-<div id="game-table">
-  <div class="felt-bg"></div>
-  <div class="felt-grain"></div>
-  <div class="table-oval"></div>
+<!-- ══ REVEAL OVERLAY ══ -->
+<div class="reveal-overlay" id="reveal-overlay">
+  <div class="reveal-title" id="reveal-title">Session Result</div>
+  <div class="reveal-cards-wrap" id="reveal-cards-wrap"></div>
+  <div class="countdown-bar"><div class="countdown-fill" id="reveal-countdown-fill" style="width:100%"></div></div>
+</div>
 
-  <div class="center-info">
-    <div class="center-badge">
-      <div class="center-session" id="center-session">—</div>
-      <div class="center-label" id="center-label">Kitti</div>
-    </div>
-  </div>
-
-  <!-- Seats -->
-  <div id="seat-bottom" class="seat" data-pos="bottom"></div>
-  <div id="seat-top" class="seat" data-pos="top"></div>
-  <div id="seat-left" class="seat" data-pos="left"></div>
-  <div id="seat-right" class="seat" data-pos="right"></div>
-
-  <!-- Top bar -->
-  <div id="top-bar">
-    <div id="ham-btn" onclick="toggleLeaderboard()">
-      <span></span><span></span><span></span>
-    </div>
-    <div class="top-room-code">ROOM <span id="top-room-code-val">—</span></div>
-    <div class="top-spacer"></div>
-    <div class="top-mode-badge" id="top-mode-badge">RANDOM</div>
-    <div style="width:8px;"></div>
-  </div>
-
-  <!-- Bottom control bar -->
-  <div id="ctrl-bar">
-    <div class="phase-label" id="phase-label">WAITING</div>
-    <div class="ctrl-spacer"></div>
-    <div id="ctrl-host-btns" style="display:none;gap:6px;display:none;">
-      <button class="btn btn-outline btn-sm" id="btn-mode-toggle" onclick="toggleMode()">MODE: RANDOM</button>
-      <button class="btn btn-gold btn-sm" id="btn-start" onclick="startGame()">START GAME</button>
-      <button class="btn btn-danger btn-sm" id="btn-end-game" onclick="endGame()" style="display:none;">END GAME</button>
-    </div>
-    <div id="ctrl-arrange-btns" style="display:none;gap:6px;">
-      <button class="btn btn-outline btn-sm" id="btn-group" onclick="groupSelected()" disabled>GROUP (0/3)</button>
-      <button class="btn btn-gold btn-sm" id="btn-done" onclick="submitSequences()" disabled>DONE</button>
-    </div>
-    <div id="ctrl-throw-btns" style="display:none;gap:6px;">
-      <!-- populated dynamically -->
-    </div>
+<!-- ══ GAME OVER OVERLAY ══ -->
+<div class="gameover-overlay" id="gameover-overlay">
+  <div style="font-size:3rem">🏆</div>
+  <div class="gameover-title" id="gameover-title">—</div>
+  <div class="gameover-winner" id="gameover-winner"></div>
+  <div class="gameover-kitti" id="gameover-kitti"></div>
+  <div style="margin-top:1rem;display:flex;gap:.6rem">
+    <button class="btn-ghost" onclick="UI.closeGameOver()">View Leaderboard</button>
+    <button class="btn-primary" id="gameover-play-again" onclick="App.requestNewGame()">Play Again</button>
   </div>
 </div>
 
-<!-- ─ LEADERBOARD PANEL ─ -->
-<div id="lb-backdrop" onclick="closeLeaderboard()"></div>
-<div id="lb-panel">
-  <div class="lb-header">
-    <div class="lb-title">LEADERBOARD</div>
-    <button class="lb-close" onclick="closeLeaderboard()">✕</button>
-  </div>
-  <div class="lb-body" id="lb-body">
-    <!-- populated dynamically -->
-  </div>
-  <div class="lb-footer" id="lb-footer">
-    <!-- host controls populated dynamically -->
-  </div>
+<!-- ══ LEADERBOARD DRAWER ══ -->
+<div class="drawer-overlay" id="drawer-overlay" onclick="UI.toggleDrawer(false)"></div>
+<div class="drawer" id="lb-drawer">
+  <h2>⚑ Leaderboard</h2>
+  <div id="lb-content"><p class="hint">No data yet</p></div>
+  <div class="divider"></div>
+  <div style="display:flex;flex-direction:column;gap:.4rem" id="nick-edit-section"></div>
 </div>
 
-<!-- ─ PRIVACY OVERLAY ─ -->
-<div class="game-overlay" id="privacy-overlay">
-  <div class="privacy-title" id="privacy-name"></div>
-  <div class="privacy-sub">Others look away!</div>
-  <button class="btn btn-gold" onclick="revealHand()">I AM READY</button>
-</div>
+<!-- ══ STATUS BAR ══ -->
+<div class="status-bar" id="status-bar"></div>
 
-<!-- ─ INVITE MODAL ─ -->
-<div class="modal-overlay" id="invite-send-modal">
-  <div class="modal-box">
-    <div class="modal-title">INVITE PLAYER</div>
-    <div class="modal-subtitle">Enter their 4-digit Player ID</div>
-    <div class="modal-body">
-      <input class="input-field" id="invite-id-input" type="number" placeholder="e.g. 4444" maxlength="6">
-      <div id="invite-send-status" style="font-size:12px;color:rgba(255,255,255,0.4);min-height:16px;"></div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline btn-sm" onclick="closeModal('invite-send-modal')">CANCEL</button>
-      <button class="btn btn-gold btn-sm" onclick="sendInvite()">SEND INVITE</button>
-    </div>
-  </div>
-</div>
-
-<!-- ─ INCOMING INVITE MODAL ─ -->
-<div class="modal-overlay" id="invite-recv-modal">
-  <div class="modal-box">
-    <div class="modal-title">GAME INVITE</div>
-    <div class="invite-incoming">
-      <div style="font-size:13px;color:rgba(255,255,255,0.4);">Invited by</div>
-      <div class="invite-from" id="invite-from-name">—</div>
-      <div style="font-family:'Space Mono',monospace;font-size:11px;color:rgba(255,255,255,0.3);" id="invite-from-id"></div>
-    </div>
-    <div class="invite-ttl-bar"><div class="invite-ttl-fill" id="invite-ttl-fill"></div></div>
-    <div class="modal-footer" style="justify-content:center;gap:16px;">
-      <button class="btn btn-danger" onclick="rejectInvite()">DECLINE</button>
-      <button class="btn btn-gold" onclick="acceptInvite()">JOIN TABLE</button>
-    </div>
-  </div>
-</div>
-
-<!-- ─ RESULT MODAL ─ -->
-<div class="modal-overlay" id="result-modal">
-  <div class="modal-box">
-    <div class="modal-title" id="result-modal-title">SESSION RESULT</div>
-    <div id="result-modal-content" style="display:flex;flex-direction:column;gap:12px;"></div>
-    <div class="modal-footer">
-      <button class="btn btn-gold btn-sm" onclick="closeModal('result-modal')">OK</button>
-    </div>
-  </div>
-</div>
-
-<!-- ─ TOAST ─ -->
-<div id="toast-container"></div>
-
-<!-- ─ CONN STATUS ─ -->
-<div id="conn-status">
-  <div id="conn-dot"></div>
-  <span id="conn-label">CONNECTING</span>
-</div>
-
-<!-- ─ FIT SCREEN BUTTON ─ -->
-<button id="btn-fit" onclick="fitScreen()">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-    <path d="M8 3H5a2 2 0 00-2 2v3M16 3h3a2 2 0 012 2v3M21 16v3a2 2 0 01-2 2h-3M8 21H5a2 2 0 01-2-2v-3"/>
-  </svg>
-  FIT SCREEN
-</button>
-
+<!-- ══════════════════ JAVASCRIPT ══════════════════ -->
 <script>
-// ═══════════════════════════════════════════
-// CONFIG
-// ═══════════════════════════════════════════
-const SERVER = 'https://kodak-awards-properly-industry.trycloudflare.com';
+// ════════════════════════════════════════════════════
+//  CONFIG
+// ════════════════════════════════════════════════════
+const SERVER = 'wss://kodak-awards-properly-industry.trycloudflare.com';
+const HAND_TYPE_NAMES = {
+  trail:'Trail 🔥', pure_seq:'Pure Sequence ✨', sequence:'Sequence',
+  color:'Flush', pair:'Pair', high:'High Card'
+};
+const SUITS_UNICODE = { S:'♠', H:'♥', D:'♦', C:'♣' };
+const RED_SUITS = new Set(['H','D']);
 
-// ═══════════════════════════════════════════
-// STATE
-// ═══════════════════════════════════════════
-let socket = null;
-let myId = null;
-let roomCode = null;
-let roomState = null; // latest room snapshot
-let isHost = false;
-let gameMode = 'random';
+// ════════════════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════════════════
+const State = {
+  playerId: null,
+  ws: null,
+  room: null,
+  players: [],
+  myHand: null,
+  mySeqs: [[null,null,null],[null,null,null],[null,null,null]],
+  selectedCard: null,   // {card, from: 'hand'|'seq', seqIdx, slotIdx}
+  done: false,
+  thrower: null,
+  session: 0,
+  thrownThisSession: false,
+  pendingInvite: null,  // {roomId, fromId, fromNickname}
+  inviteTtlTimer: null,
+};
 
-// Game state (client side)
-let myHand = [];
-let mySequences = [[], [], []]; // 3 slots for arrange phase
-let selectedCards = [];
-let pendingInviteId = null;
-let ttlInterval = null;
-let arrangePhaseActive = false;
+// ════════════════════════════════════════════════════
+//  WS + CONNECTION
+// ════════════════════════════════════════════════════
+const WS = {
+  reconnectDelay: 1000,
+  pingTimer: null,
 
-// ═══════════════════════════════════════════
-// FIT SCREEN
-// ═══════════════════════════════════════════
-function fitScreen() {
-  const vw = window.innerWidth;
-  const vh = window.innerHeight;
-  const isLandscape = vw > vh;
+  connect() {
+    if (State.ws && State.ws.readyState < 2) return;
+    try { State.ws = new WebSocket(SERVER); } catch { WS.retry(); return; }
 
-  if (!isLandscape) {
-    showToast('Rotate to landscape for best fit', 'red');
-    return;
-  }
+    State.ws.onopen = () => {
+      UI.setConnected(true);
+      WS.reconnectDelay = 1000;
+      WS.startPing();
+      WS.send({ type:'register', id: State.playerId });
+    };
+    State.ws.onmessage = (e) => {
+      try { Handlers.handle(JSON.parse(e.data)); } catch {}
+    };
+    State.ws.onclose = () => {
+      UI.setConnected(false);
+      WS.stopPing();
+      WS.retry();
+    };
+    State.ws.onerror = () => {};
+  },
 
-  // Calculate optimal card size based on screen dimensions
-  const maxCardW = Math.min(Math.floor(vw / 14), 68);
-  const maxCardH = Math.floor(maxCardW * 1.42);
-  const cardR = Math.max(3, Math.floor(maxCardW * 0.08));
+  send(msg) {
+    if (State.ws?.readyState === 1) State.ws.send(JSON.stringify(msg));
+  },
 
-  document.documentElement.style.setProperty('--card-w', maxCardW + 'px');
-  document.documentElement.style.setProperty('--card-h', maxCardH + 'px');
-  document.documentElement.style.setProperty('--card-r', cardR + 'px');
+  retry() {
+    setTimeout(() => WS.connect(), WS.reconnectDelay);
+    WS.reconnectDelay = Math.min(WS.reconnectDelay * 1.5, 10000);
+  },
 
-  showToast('Screen fitted ✓', 'gold');
-  renderTable();
-}
+  startPing() {
+    WS.stopPing();
+    WS.pingTimer = setInterval(() => WS.send({ type:'ping' }), 20000);
+  },
+  stopPing() { clearInterval(WS.pingTimer); }
+};
 
-function checkOrientation() {
-  const w = window.innerWidth, h = window.innerHeight;
-  const warn = document.getElementById('orient-warn');
-  if (w < h && w < 600) {
-    warn.classList.add('show');
-  } else {
-    warn.classList.remove('show');
-  }
-}
-
-window.addEventListener('resize', () => { checkOrientation(); fitScreen(); });
-window.addEventListener('orientationchange', () => setTimeout(() => { checkOrientation(); fitScreen(); }, 300));
-
-// ═══════════════════════════════════════════
-// SOCKET
-// ═══════════════════════════════════════════
-function initSocket() {
-  socket = io(SERVER, {
-    transports: ['websocket', 'polling'],
-    reconnectionAttempts: 10,
-    reconnectionDelay: 2000,
-    timeout: 10000
-  });
-
-  socket.on('connect', () => {
-    setConnStatus(true);
-    const savedId = localStorage.getItem('kitti_id');
-    socket.emit('register', { playerId: savedId ? parseInt(savedId) : null });
-  });
-
-  socket.on('disconnect', () => setConnStatus(false));
-  socket.on('connect_error', () => setConnStatus(false));
-
-  socket.on('registered', ({ playerId, isNew }) => {
-    myId = playerId;
-    localStorage.setItem('kitti_id', playerId);
-    document.getElementById('my-id-display').textContent = playerId;
-    if (!isNew) showToast(`Welcome back — ID ${playerId}`, 'gold');
-  });
-
-  socket.on('error', ({ msg }) => showToast(msg, 'red'));
-
-  socket.on('room_created', ({ code }) => {
-    roomCode = code;
-    isHost = true;
-    document.getElementById('top-room-code-val').textContent = code;
-    showGameTable();
-    showToast(`Room ${code} created`, 'gold');
-  });
-
-  socket.on('room_update', (snapshot) => {
-    roomState = snapshot;
-    gameMode = snapshot.mode;
-    renderTable();
-    updateLeaderboard();
-    updateCtrlBar();
-  });
-
-  socket.on('player_joined', ({ playerId, nickname }) => {
-    showToast(`${nickname} joined the table`);
-  });
-
-  socket.on('player_left', ({ playerId }) => {
-    const p = getPlayerFromState(playerId);
-    if (p) showToast(`${p.nickname} left the table`, 'red');
-  });
-
-  socket.on('player_disconnected', ({ playerId, nickname }) => {
-    showToast(`${nickname} disconnected`, 'red');
-  });
-
-  socket.on('player_reconnected', ({ playerId, nickname }) => {
-    showToast(`${nickname} reconnected`, 'gold');
-  });
-
-  socket.on('host_changed', ({ newHostId }) => {
-    isHost = (newHostId === myId);
-    if (isHost) showToast('You are now the host', 'gold');
-    updateCtrlBar();
-  });
-
-  socket.on('invite_sent', ({ targetId, inviteId }) => {
-    document.getElementById('invite-send-status').textContent = `Invite sent to ${targetId}. Waiting 5s...`;
-    setTimeout(() => {
-      const s = document.getElementById('invite-send-status');
-      if (s) s.textContent = '';
-    }, 5500);
-  });
-
-  socket.on('invite_rejected', ({ byId, byNick }) => {
-    showToast(`${byNick || byId} declined the invite`, 'red');
-    closeModal('invite-send-modal');
-  });
-
-  socket.on('invite_expired', ({ targetId, inviteId }) => {
-    if (inviteId) {
-      // This is for the invitee - modal timeout
-      clearInterval(ttlInterval);
-      closeModal('invite-recv-modal');
-    } else {
-      showToast(`Invite to ${targetId} expired`, 'red');
-      closeModal('invite-send-modal');
+// ════════════════════════════════════════════════════
+//  MESSAGE HANDLERS
+// ════════════════════════════════════════════════════
+const Handlers = {
+  handle(msg) {
+    switch (msg.type) {
+      case 'registered':   Handlers.onRegistered(msg); break;
+      case 'room_created': Handlers.onRoomCreated(msg); break;
+      case 'room_state':   Handlers.onRoomState(msg); break;
+      case 'invite':       Handlers.onInvite(msg); break;
+      case 'invite_sent':  UI.notify('Invite sent ✓','success'); break;
+      case 'invite_fail':  UI.notify('Invite failed: '+msg.reason,'error'); break;
+      case 'invite_declined': UI.notify('Player declined the invite'); break;
+      case 'invite_expired':  UI.notify('Invite expired'); break;
+      case 'player_joined':   UI.notify(`Player ${msg.id} joined the table 🃏`); break;
+      case 'player_left':     UI.notify(`${msg.nickname||msg.id} left the table`); break;
+      case 'player_offline':  UI.notify(`${msg.nickname||msg.id} went offline...`,'error'); break;
+      case 'player_online':   UI.notify(`${msg.nickname||msg.id} is back online`,'success'); break;
+      case 'nickname_set':    Handlers.onNicknameSet(msg); break;
+      case 'win_mode_changed': UI.notify(`Win mode: ${msg.mode}`); break;
+      case 'game_started':    UI.notify('Game started! Arrange your sequences 🃏','success'); break;
+      case 'sequences_saved': UI.notify('Sequences saved ✓','success'); break;
+      case 'player_done':     UI.notify(`${msg.nickname||msg.id} is ready`,'success'); break;
+      case 'player_threw':    Handlers.onPlayerThrew(msg); break;
+      case 'session_reveal':  Handlers.onSessionReveal(msg); break;
+      case 'next_session':    Handlers.onNextSession(msg); break;
+      case 'game_over':       Handlers.onGameOver(msg); break;
+      case 'game_ended_by_host': Handlers.onGameEndedByHost(msg); break;
+      case 'host_changed':    UI.notify(`New host: ${msg.nickname||msg.newHost} 👑`,'success'); break;
+      case 'player_busted_offline': UI.notify(`${msg.nickname||msg.id} was busted (offline)`,'error'); break;
+      case 'error':           UI.notify(msg.msg,'error'); break;
+      case 'pong': break;
     }
-  });
+  },
 
-  socket.on('incoming_invite', ({ inviteId, fromId, fromNick, roomCode: rc, ttl }) => {
-    pendingInviteId = inviteId;
-    document.getElementById('invite-from-name').textContent = fromNick || `Player ${fromId}`;
-    document.getElementById('invite-from-id').textContent = `ID: ${fromId}`;
-    openModal('invite-recv-modal');
+  onRegistered(msg) {
+    State.playerId = msg.id;
+    localStorage.setItem('tpId', msg.id);
+    document.getElementById('hdr-id').textContent = 'ID: ' + msg.id;
+  },
 
-    // TTL bar animation
-    const fill = document.getElementById('invite-ttl-fill');
-    fill.style.transition = `width ${ttl}ms linear`;
-    fill.style.width = '100%';
-    requestAnimationFrame(() => {
-      fill.style.width = '0%';
-    });
-  });
+  onRoomCreated(msg) {
+    // room_state follows
+  },
 
-  socket.on('game_started', ({ hand, matchNumber, mode }) => {
-    myHand = hand;
-    mySequences = [[], [], []];
-    selectedCards = [];
-    arrangePhaseActive = true;
-    gameMode = mode;
-
-    // Show privacy screen
-    const myName = getMyName();
-    document.getElementById('privacy-name').textContent = myName;
-    document.getElementById('privacy-overlay').classList.add('visible');
-  });
-
-  socket.on('sequences_accepted', () => {
-    arrangePhaseActive = false;
-    showToast('Sequences locked in ✓', 'gold');
-  });
-
-  socket.on('player_ready', ({ playerId }) => {
-    const p = getPlayerFromState(playerId);
-    if (p && playerId !== myId) showToast(`${p.nickname} is ready`);
-  });
-
-  socket.on('throw_phase_start', ({ session, currentThrower }) => {
-    document.getElementById('center-session').textContent = `S${session}`;
-    document.getElementById('center-label').textContent = 'SESSION';
-    updateCtrlBar();
-    if (currentThrower === myId) {
-      showToast('YOUR TURN — Throw a sequence!', 'gold');
-    } else {
-      const p = getPlayerFromState(currentThrower);
-      showToast(`${p?.nickname || currentThrower}'s turn to throw`);
-    }
-  });
-
-  socket.on('sequence_thrown', ({ playerId, nickname, cards, power, isBusted, session }) => {
-    if (playerId !== myId) {
-      showToast(isBusted ? `${nickname} — BUSTED!` : `${nickname} threw ${power.label}`, isBusted ? 'red' : '');
-    }
-    renderThrownCards(playerId, cards, isBusted);
-    updateCtrlBar();
-  });
-
-  socket.on('next_thrower', ({ currentThrower }) => {
-    if (currentThrower === myId) showToast('YOUR TURN — Throw now!', 'gold');
-    else {
-      const p = getPlayerFromState(currentThrower);
-      showToast(`${p?.nickname || currentThrower}'s turn`);
-    }
-    updateCtrlBar();
-  });
-
-  socket.on('session_result', (data) => {
-    showSessionResult(data);
-  });
-
-  socket.on('match_over', (data) => {
-    showMatchResult(data);
-  });
-
-  socket.on('game_ended_by_host', ({ leaderboard }) => {
-    showToast('Host ended the game', 'red');
-    resetGame();
-  });
-
-  socket.on('game_aborted', ({ reason }) => {
-    showToast(`Game aborted: ${reason}`, 'red');
-    resetGame();
-  });
-}
-
-function setConnStatus(ok) {
-  document.getElementById('conn-dot').className = ok ? '' : 'bad';
-  document.getElementById('conn-label').textContent = ok ? 'LIVE' : 'RECONNECTING...';
-}
-
-// ═══════════════════════════════════════════
-// LOBBY ACTIONS
-// ═══════════════════════════════════════════
-function copyId() {
-  if (!myId) return;
-  navigator.clipboard?.writeText(String(myId));
-  showToast('ID copied!', 'gold');
-}
-
-function createRoom() {
-  if (!socket?.connected) return showToast('Not connected', 'red');
-  socket.emit('create_room');
-}
-
-function joinViaCode() {
-  // For joining we need invite — room code is just for display
-  // Actually the prototype shows we join via invite only
-  // But let's allow direct room code entry as a QR / link feature
-  const codeEl = document.getElementById('join-room-input');
-  const code = (codeEl.textContent || codeEl.value || '').trim().toUpperCase();
-  if (!code) return;
-  document.getElementById('lobby-status').textContent = 'Ask the host to invite you from room ' + code;
-}
-
-// ═══════════════════════════════════════════
-// GAME TABLE
-// ═══════════════════════════════════════════
-function showGameTable() {
-  document.getElementById('screen-lobby').classList.add('hidden');
-  document.getElementById('game-table').classList.add('active');
-  renderTable();
-  updateCtrlBar();
-}
-
-function getPlayerFromState(pid) {
-  if (!roomState) return null;
-  return roomState.players.find(p => p.id === pid);
-}
-function getMyName() {
-  const p = getPlayerFromState(myId);
-  return p?.nickname || `Player ${myId}`;
-}
-
-// Seat layout based on player count and my position
-function getSeatLayout() {
-  if (!roomState) return {};
-  const all = roomState.players;
-  const myIdx = all.findIndex(p => p.id === myId);
-  const positions = ['bottom', 'left', 'top', 'right'];
-  const layout = {};
-  all.forEach((p, i) => {
-    const relIdx = (i - myIdx + all.length) % all.length;
-    layout[positions[relIdx]] = p;
-  });
-  return layout;
-}
-
-function renderTable() {
-  if (!roomState) return;
-  const layout = getSeatLayout();
-  const positions = ['bottom', 'top', 'left', 'right'];
-  const maxSeats = 3;
-
-  // Host controls visibility
-  isHost = roomState.hostId === myId;
-  document.getElementById('top-room-code-val').textContent = roomState.code || roomCode;
-  document.getElementById('top-mode-badge').textContent = (roomState.mode || 'random').toUpperCase();
-
-  positions.forEach(pos => {
-    const el = document.getElementById(`seat-${pos}`);
-    el.innerHTML = '';
-
-    const player = layout[pos];
-    if (player) {
-      renderPlayerSeat(el, player, pos);
-    } else if (pos !== 'bottom' && pos !== 'top' && roomState.players.length < maxSeats && isHost && !roomState.gameState) {
-      // Empty seat with add button (only on left/right for host)
-      const empty = document.createElement('div');
-      empty.className = 'seat-empty';
-      empty.onclick = () => openInviteModal();
-      empty.innerHTML = '<span>+</span>';
-      el.appendChild(empty);
-    }
-  });
-
-  // Update center
-  if (roomState.gameState) {
-    const gs = roomState.gameState;
-    document.getElementById('center-session').textContent = gs.session > 0 ? `S${gs.session}` : '—';
-    document.getElementById('center-label').textContent = gs.phase === 'arrange' ? 'ARRANGE' : gs.phase === 'throw' ? 'THROW' : 'KITTI';
-  } else {
-    document.getElementById('center-session').textContent = '—';
-    document.getElementById('center-label').textContent = 'KITTI';
-  }
-}
-
-function renderPlayerSeat(el, player, pos) {
-  const isMe = player.id === myId;
-  const isHostPlayer = player.id === roomState?.hostId;
-  const gs = roomState?.gameState;
-  const wins = roomState?.leaderboard?.[player.id] || 0;
-
-  // Nameplate
-  const np = document.createElement('div');
-  np.className = 'nameplate';
-  np.style.position = 'relative';
-  if (isHostPlayer) {
-    const crown = document.createElement('div');
-    crown.className = 'host-crown';
-    crown.textContent = '♛ HOST';
-    np.appendChild(crown);
-    np.style.paddingTop = '10px';
-  }
-  np.innerHTML += `
-    <div class="nameplate-online${player.online ? '' : ' offline'}"></div>
-    <div class="nameplate-player-info">
-      <div class="nameplate-name">${esc(player.nickname)}</div>
-      <div class="nameplate-id">#${player.id}</div>
-    </div>
-    <div class="score-dots">
-      ${[0,1,2].map(i => `<div class="score-dot${i < wins ? ' filled' : ''}"></div>`).join('')}
-    </div>
-  `;
-  el.appendChild(np);
-
-  // Cards area
-  if (isMe && arrangePhaseActive) {
-    renderArrangeArea(el);
-  } else if (isMe && gs?.phase === 'throw') {
-    // Show throw controls in ctrl bar — just show hand count
-    const info = document.createElement('div');
-    info.style.fontSize = '11px';
-    info.style.color = 'rgba(255,255,255,0.35)';
-    info.style.letterSpacing = '0.1em';
-    info.textContent = `${mySequences.filter(s=>s.length>0).length} seq remaining`;
-    el.appendChild(info);
-  } else if (!isMe && gs) {
-    // Opponent — show hidden cards or thrown cards
-    const thrown = gs.thrownThisRound?.[player.id];
-    if (thrown) {
-      const tArea = document.createElement('div');
-      tArea.className = 'thrown-area';
-      thrown.cards?.forEach(c => {
-        tArea.appendChild(buildCardEl(c, false));
-      });
-      el.appendChild(tArea);
-    } else {
-      const hidden = document.createElement('div');
-      hidden.className = 'cards-hidden';
-      for(let i=0;i<9;i++) {
-        const cb = document.createElement('div');
-        cb.className = 'card-mini-back';
-        hidden.appendChild(cb);
+  onRoomState(msg) {
+    State.room = msg.room;
+    State.players = msg.players || [];
+    State.thrower = msg.thrower;
+    if (msg.myHand) {
+      State.myHand = msg.myHand;
+      if (msg.room.state === 'playing' && State.mySeqs.flat().every(c=>c===null)) {
+        // Auto-fill sequences for convenience (player can rearrange)
+        State.mySeqs = [
+          State.myHand.slice(0,3),
+          State.myHand.slice(3,6),
+          State.myHand.slice(6,9),
+        ];
       }
-      el.appendChild(hidden);
     }
-  } else if (isMe && !gs) {
-    // Waiting in lobby
-    const waiting = document.createElement('div');
-    waiting.style.fontSize = '12px';
-    waiting.style.color = 'rgba(255,255,255,0.25)';
-    waiting.style.letterSpacing = '0.15em';
-    waiting.textContent = 'WAITING FOR HOST…';
-    el.appendChild(waiting);
-  }
-}
+    if (msg.mySeqs) State.mySeqs = msg.mySeqs;
+    State.session = msg.room.session ?? 0;
 
-// ═══════════════════════════════════════════
-// ARRANGE PHASE UI
-// ═══════════════════════════════════════════
-function renderArrangeArea(container) {
-  // Hand cards
-  const handRow = document.createElement('div');
-  handRow.className = 'card-container';
-  handRow.id = 'my-hand-row';
+    // Update done state
+    const me = State.players.find(p=>p.id===State.playerId);
+    if (me) State.done = me.done;
 
-  myHand.forEach((card, idx) => {
-    const isSelected = selectedCards.includes(idx);
-    const el = buildCardEl(card, false);
-    el.classList.toggle('selected', isSelected);
-    el.onclick = () => toggleSelectCard(idx);
-    handRow.appendChild(el);
-  });
-  container.appendChild(handRow);
+    UI.renderAll();
+    if (msg.sessionThrows) Handlers.showRevealFromState(msg.sessionThrows, msg.room.session);
+  },
 
-  // Sequence slots
-  const seqRow = document.createElement('div');
-  seqRow.className = 'sequences-area';
+  showRevealFromState(throws, session) {
+    // only if reveal is active
+  },
 
-  for (let s = 0; s < 3; s++) {
-    const slot = document.createElement('div');
-    slot.className = `seq-slot${mySequences[s].length === 3 ? ' filled' : ''}`;
-    slot.dataset.slot = s;
+  onInvite(msg) {
+    State.pendingInvite = { roomId: msg.roomId, fromId: msg.fromId, fromNickname: msg.fromNickname };
+    document.getElementById('invite-from-name').textContent = msg.fromNickname || msg.fromId;
+    UI.openModal('incoming-invite-modal');
+    // TTL bar
+    let elapsed = 0;
+    const ttl = msg.ttl || 8000;
+    clearInterval(State.inviteTtlTimer);
+    const fill = document.getElementById('invite-ttl-fill');
+    State.inviteTtlTimer = setInterval(() => {
+      elapsed += 100;
+      fill.style.width = Math.max(0, 100 - (elapsed/ttl)*100) + '%';
+      if (elapsed >= ttl) {
+        clearInterval(State.inviteTtlTimer);
+        UI.closeModal('incoming-invite-modal');
+        UI.notify('Invite expired');
+        State.pendingInvite = null;
+      }
+    }, 100);
+  },
 
-    const label = document.createElement('div');
-    label.className = 'seq-slot-label';
-    label.textContent = `SEQ ${s + 1}`;
-    slot.appendChild(label);
+  onNicknameSet(msg) {
+    const p = State.players.find(x=>x.id===msg.id);
+    if (p) p.nickname = msg.nickname;
+    UI.notify(`Nickname set: ${msg.nickname}`,'success');
+    UI.renderTable();
+    UI.renderLeaderboard();
+  },
 
-    if (mySequences[s].length === 3) {
-      mySequences[s].forEach(handIdx => {
-        const card = myHand[handIdx];
-        if (card) {
-          const ce = buildCardEl(card, false);
-          ce.style.pointerEvents = 'none';
-          slot.appendChild(ce);
-        }
-      });
+  onPlayerThrew(msg) {
+    UI.notify(`${msg.nickname||msg.id} threw — ${HAND_TYPE_NAMES[msg.handType]||msg.handType}`);
+    const p = State.players.find(x=>x.id===msg.id);
+    if (p) p.threwThisSession = true;
+    UI.renderTable();
+  },
 
-      const power = calcPower(mySequences[s].map(i => myHand[i]));
-      const pwBadge = document.createElement('div');
-      pwBadge.className = 'seq-power-badge';
-      pwBadge.textContent = power.label;
-      slot.appendChild(pwBadge);
+  onSessionReveal(msg) {
+    const room = State.room;
+    const players = State.players;
+    const el = document.getElementById('reveal-cards-wrap');
+    el.innerHTML = '';
+    const winnerName = players.find(p=>p.id===msg.winner)?.nickname || msg.winner || '—';
+    document.getElementById('reveal-title').textContent = `Session ${msg.session+1} → ${winnerName} wins!`;
 
-      slot.onclick = () => ungroupSequence(s);
+    for (const [pid, hand] of Object.entries(msg.throws||{})) {
+      const pInfo = players.find(p=>p.id===pid);
+      const name = pInfo?.nickname || pid;
+      const isWinner = pid === msg.winner;
+      const div = document.createElement('div');
+      div.className = 'reveal-player';
+      div.innerHTML = `
+        <div class="reveal-pname ${isWinner?'winner':''}">${name}${isWinner?' 👑':''}</div>
+        <div class="reveal-hand">${(hand.cards||[]).map(c=>UI.cardHtml(c,true)).join('')}</div>
+        <div class="reveal-badge">${HAND_TYPE_NAMES[hand.type]||hand.type}</div>
+      `;
+      el.appendChild(div);
+    }
+
+    document.getElementById('reveal-overlay').classList.add('active');
+    // Countdown 6s
+    let pct = 100;
+    const fill = document.getElementById('reveal-countdown-fill');
+    const iv = setInterval(() => {
+      pct -= (100/60);
+      fill.style.width = Math.max(0,pct) + '%';
+      if (pct <= 0) {
+        clearInterval(iv);
+        document.getElementById('reveal-overlay').classList.remove('active');
+      }
+    }, 100);
+
+    // Update scores
+    for (const [pid, score] of Object.entries(msg.scores||{})) {
+      const p = State.players.find(x=>x.id===pid);
+      if (p) p.roundScores = score;
+    }
+    UI.renderTable();
+  },
+
+  onNextSession(msg) {
+    State.session = msg.session;
+    State.thrower = msg.thrower;
+    State.thrownThisSession = false;
+    State.done = false;
+    // Reset seqs for new session
+    State.mySeqs = [[null,null,null],[null,null,null],[null,null,null]];
+    if (State.myHand) {
+      State.mySeqs = [
+        State.myHand.slice(0,3),
+        State.myHand.slice(3,6),
+        State.myHand.slice(6,9),
+      ];
+    }
+    const thrName = State.players.find(p=>p.id===msg.thrower)?.nickname || msg.thrower;
+    UI.notify(`Session ${msg.session+1} begins · ${thrName} throws first 🃏`,'success');
+    UI.renderAll();
+  },
+
+  onGameOver(msg) {
+    const winnerInfo = State.players.find(p=>p.id===msg.winner);
+    const winnerName = winnerInfo?.nickname || msg.winner || '—';
+    State.room.state = 'lobby';
+    State.myHand = null;
+    State.mySeqs = [[null,null,null],[null,null,null],[null,null,null]];
+    State.done = false;
+    State.thrownThisSession = false;
+
+    const overlay = document.getElementById('gameover-overlay');
+    document.getElementById('gameover-title').textContent = msg.isKitti ? 'कित्ती!' : winnerName+' Wins!';
+    document.getElementById('gameover-winner').textContent = msg.isKitti ? 'No winner — Kitti round' : `🎉 ${winnerName} takes the round`;
+    const kittiEl = document.getElementById('gameover-kitti');
+    if (msg.isKitti) {
+      kittiEl.textContent = 'K — Kitti · money doubles in this round';
+      kittiEl.style.display = 'block';
     } else {
-      const hint = document.createElement('div');
-      hint.className = 'seq-empty-hint';
-      hint.textContent = mySequences[s].length > 0 ? `${mySequences[s].length}/3` : 'DROP 3';
-      slot.appendChild(hint);
+      kittiEl.style.display = 'none';
     }
+    overlay.classList.add('active');
 
-    seqRow.appendChild(slot);
+    // Update leaderboard
+    if (msg.leaderboard) UI.updateLeaderboard(msg.leaderboard);
+
+    // Hide for non-hosts
+    const me = State.players.find(p=>p.id===State.playerId);
+    document.getElementById('gameover-play-again').style.display = (me?.isHost||State.room?.hostId===State.playerId) ? '' : 'none';
+
+    UI.renderAll();
+  },
+
+  onGameEndedByHost(msg) {
+    State.room.state = 'lobby';
+    State.myHand = null;
+    UI.notify('Host ended the game','error');
+    if (msg.leaderboard) UI.updateLeaderboard(msg.leaderboard);
+    document.getElementById('gameover-overlay').classList.remove('active');
+    UI.renderAll();
   }
-  container.appendChild(seqRow);
+};
 
-  // Update ctrl bar
-  updateGroupBtn();
-}
+// ════════════════════════════════════════════════════
+//  UI HELPERS
+// ════════════════════════════════════════════════════
+const UI = {
+  leaderboardData: [],
 
-function toggleSelectCard(idx) {
-  // Check if card is in a sequence already
-  for (let s = 0; s < 3; s++) {
-    if (mySequences[s].includes(idx)) return; // already grouped
-  }
-  const pos = selectedCards.indexOf(idx);
-  if (pos > -1) {
-    selectedCards.splice(pos, 1);
-  } else if (selectedCards.length < 3) {
-    selectedCards.push(idx);
-  }
-  renderTable();
-  updateGroupBtn();
-}
+  setConnected(on) {
+    const b = document.getElementById('conn-badge');
+    b.className = 'conn-badge ' + (on?'online':'offline');
+    b.innerHTML = `<div class="conn-dot"></div><span>${on?'online':'offline'}</span>`;
+  },
 
-function updateGroupBtn() {
-  const btn = document.getElementById('btn-group');
-  const doneBtn = document.getElementById('btn-done');
-  if (!btn) return;
-  btn.textContent = `GROUP (${selectedCards.length}/3)`;
-  btn.disabled = selectedCards.length !== 3;
+  notify(text, type='') {
+    const stack = document.getElementById('notif-stack');
+    const el = document.createElement('div');
+    el.className = 'notif ' + (type||'');
+    const icon = type==='success'?'✓ ':type==='error'?'✕ ':'♦ ';
+    el.textContent = icon + text;
+    stack.prepend(el);
+    setTimeout(() => {
+      el.classList.add('out');
+      setTimeout(() => el.remove(), 350);
+    }, 3200);
+  },
 
-  // Check if we can fill a slot
-  const emptySlot = mySequences.findIndex(s => s.length === 0);
-  btn.disabled = selectedCards.length !== 3 || emptySlot === -1;
+  openModal(id) {
+    document.getElementById(id).classList.add('active');
+  },
+  closeModal(id) {
+    document.getElementById(id).classList.remove('active');
+  },
 
-  const allFilled = mySequences.every(s => s.length === 3);
-  doneBtn.disabled = !allFilled;
-}
+  toggleDrawer(open) {
+    document.getElementById('lb-drawer').classList.toggle('open', open);
+    document.getElementById('drawer-overlay').classList.toggle('open', open);
+  },
 
-function groupSelected() {
-  if (selectedCards.length !== 3) return;
-  const slotIdx = mySequences.findIndex(s => s.length === 0);
-  if (slotIdx === -1) return showToast('All sequence slots full', 'red');
-  mySequences[slotIdx] = [...selectedCards];
-  selectedCards = [];
-  renderTable();
-  updateGroupBtn();
-}
+  toggleHand() {
+    document.getElementById('hand-panel').classList.toggle('collapsed');
+  },
 
-function ungroupSequence(slotIdx) {
-  mySequences[slotIdx] = [];
-  selectedCards = [];
-  renderTable();
-  updateGroupBtn();
-}
+  closeGameOver() {
+    document.getElementById('gameover-overlay').classList.remove('active');
+    UI.toggleDrawer(true);
+  },
 
-function submitSequences() {
-  const allFilled = mySequences.every(s => s.length === 3);
-  if (!allFilled) return showToast('Fill all 3 sequences first', 'red');
-
-  const sequences = mySequences.map(seq => seq.map(i => myHand[i]));
-  socket.emit('submit_sequences', { sequences });
-  arrangePhaseActive = false;
-  showToast('Sequences submitted!');
-  updateCtrlBar();
-  renderTable();
-}
-
-function revealHand() {
-  document.getElementById('privacy-overlay').classList.remove('visible');
-  arrangePhaseActive = true;
-  renderArrangePhaseCtrlBar();
-  renderTable();
-}
-
-function renderArrangePhaseCtrlBar() {
-  document.getElementById('ctrl-host-btns').style.display = 'none';
-  document.getElementById('ctrl-arrange-btns').style.display = 'flex';
-  document.getElementById('ctrl-throw-btns').style.display = 'none';
-  document.getElementById('phase-label').textContent = 'ARRANGE SEQUENCES';
-}
-
-// ═══════════════════════════════════════════
-// THROW PHASE
-// ═══════════════════════════════════════════
-function renderThrowCtrlBar() {
-  document.getElementById('ctrl-arrange-btns').style.display = 'none';
-  document.getElementById('ctrl-host-btns').style.display = 'none';
-  const throwBar = document.getElementById('ctrl-throw-btns');
-  throwBar.style.display = 'flex';
-  throwBar.innerHTML = '';
-
-  const gs = roomState?.gameState;
-  const isMyTurn = gs?.currentThrower === myId;
-
-  document.getElementById('phase-label').textContent = isMyTurn ? 'YOUR THROW' : 'WAITING…';
-
-  if (!isMyTurn) return;
-
-  mySequences.forEach((seq, idx) => {
-    if (seq.length !== 3) return;
-    const cards = seq.map(i => myHand[i]);
-    const power = calcPower(cards);
-
-    const opt = document.createElement('div');
-    opt.className = 'throw-option-card';
-    opt.onclick = () => throwSequence(idx);
-
-    const miniCards = document.createElement('div');
-    miniCards.className = 'throw-option-mini';
-    cards.forEach(c => {
-      const mb = document.createElement('div');
-      mb.className = 'card-mini-back';
-      mb.style.background = isRed(c) ? 'linear-gradient(135deg,#4a0000,#8b1a1a)' : 'linear-gradient(135deg,#0d2030,#1a3a5c)';
-      mb.style.border = '1px solid rgba(255,255,255,0.2)';
-      mb.style.width = '20px'; mb.style.height = '30px';
-      mb.style.borderRadius = '2px';
-      miniCards.appendChild(mb);
-    });
-
-    opt.innerHTML = `
-      <div class="throw-option-label">SEQ ${idx+1}</div>
-      <div class="throw-option-type">${power.label}</div>
-    `;
-    opt.prepend(miniCards);
-    throwBar.appendChild(opt);
-  });
-}
-
-function throwSequence(seqIdx) {
-  socket.emit('throw_sequence', { sequenceIdx: seqIdx });
-  // Optimistically remove from local
-  mySequences[seqIdx] = [];
-  updateCtrlBar();
-}
-
-function renderThrownCards(playerId, cards, isBusted) {
-  // Show on the opponent's seat (or own)
-  renderTable();
-  if (isBusted) showToast(`BUSTED! Invalid throw`, 'red');
-}
-
-// ═══════════════════════════════════════════
-// CTRL BAR MANAGER
-// ═══════════════════════════════════════════
-function updateCtrlBar() {
-  const gs = roomState?.gameState;
-
-  if (!gs) {
-    // Lobby / pre-game
-    document.getElementById('ctrl-host-btns').style.display = isHost ? 'flex' : 'none';
-    document.getElementById('ctrl-arrange-btns').style.display = 'none';
-    document.getElementById('ctrl-throw-btns').style.display = 'none';
-
-    if (isHost) {
-      const startBtn = document.getElementById('btn-start');
-      const endBtn = document.getElementById('btn-end-game');
-      startBtn.style.display = '';
-      endBtn.style.display = 'none';
-      startBtn.disabled = (roomState?.players?.length || 0) < 2;
-
-      const modeBtn = document.getElementById('btn-mode-toggle');
-      modeBtn.textContent = `MODE: ${(gameMode || 'random').toUpperCase()}`;
-    }
-    document.getElementById('phase-label').textContent = isHost ? 'HOST CONTROLS' : 'WAITING FOR HOST';
-    return;
-  }
-
-  if (gs.phase === 'arrange') {
-    if (arrangePhaseActive) {
-      renderArrangePhaseCtrlBar();
-    } else {
-      document.getElementById('ctrl-arrange-btns').style.display = 'none';
-      document.getElementById('ctrl-host-btns').style.display = 'none';
-      document.getElementById('ctrl-throw-btns').style.display = 'none';
-      document.getElementById('phase-label').textContent = 'WAITING FOR OTHERS…';
-    }
-  } else if (gs.phase === 'throw') {
-    renderThrowCtrlBar();
-    if (isHost) {
-      const endBtn = document.getElementById('btn-end-game');
-      if (endBtn) { endBtn.style.display = ''; }
-    }
-  }
-}
-
-// ═══════════════════════════════════════════
-// HOST ACTIONS
-// ═══════════════════════════════════════════
-function toggleMode() {
-  gameMode = gameMode === 'random' ? 'consequential' : 'random';
-  socket.emit('set_mode', { mode: gameMode });
-  document.getElementById('btn-mode-toggle').textContent = `MODE: ${gameMode.toUpperCase()}`;
-}
-
-function startGame() {
-  socket.emit('start_game');
-}
-
-function endGame() {
-  socket.emit('end_game');
-}
-
-function resetGame() {
-  myHand = [];
-  mySequences = [[], [], []];
-  selectedCards = [];
-  arrangePhaseActive = false;
-  updateCtrlBar();
-  renderTable();
-}
-
-// ═══════════════════════════════════════════
-// INVITE SYSTEM
-// ═══════════════════════════════════════════
-let pendingInviteSeat = null;
-
-function openInviteModal(pos) {
-  pendingInviteSeat = pos;
-  document.getElementById('invite-id-input').value = '';
-  document.getElementById('invite-send-status').textContent = '';
-  openModal('invite-send-modal');
-  setTimeout(() => document.getElementById('invite-id-input').focus(), 100);
-}
-
-function sendInvite() {
-  const targetId = parseInt(document.getElementById('invite-id-input').value);
-  if (!targetId || isNaN(targetId)) return showToast('Enter a valid player ID', 'red');
-  socket.emit('send_invite', { targetId });
-  document.getElementById('invite-send-status').textContent = `Sending to ${targetId}…`;
-}
-
-function acceptInvite() {
-  if (!pendingInviteId) return;
-  socket.emit('invite_response', { inviteId: pendingInviteId, accepted: true });
-  clearInterval(ttlInterval);
-  closeModal('invite-recv-modal');
-}
-
-function rejectInvite() {
-  if (!pendingInviteId) return;
-  socket.emit('invite_response', { inviteId: pendingInviteId, accepted: false });
-  clearInterval(ttlInterval);
-  closeModal('invite-recv-modal');
-  pendingInviteId = null;
-}
-
-// ═══════════════════════════════════════════
-// RESULT MODALS
-// ═══════════════════════════════════════════
-function showSessionResult(data) {
-  const { session, winner, winnerNick, thrown, sessionWins } = data;
-  const content = document.getElementById('result-modal-content');
-  document.getElementById('result-modal-title').textContent = `SESSION ${session} RESULT`;
-
-  let html = '';
-  if (winner) {
-    html += `<div class="result-modal-winner">${esc(winnerNick || winner)}</div>`;
-    html += `<div style="text-align:center;font-size:13px;color:rgba(255,255,255,0.4);">Wins this session</div>`;
-  } else {
-    html += `<div class="result-modal-winner" style="color:#e74c3c;">NO WINNER</div>`;
-  }
-
-  // Show what was thrown
-  if (thrown) {
-    html += `<div style="display:flex;flex-direction:column;gap:6px;margin-top:8px;">`;
-    Object.entries(thrown).forEach(([pid, t]) => {
-      const p = getPlayerFromState(parseInt(pid));
-      if (!t) return;
-      html += `<div style="display:flex;align-items:center;gap:8px;font-size:13px;">
-        <span style="color:rgba(255,255,255,0.4);width:80px;overflow:hidden;text-overflow:ellipsis;">${esc(p?.nickname || pid)}</span>
-        <span style="color:${t.isBusted ? '#e74c3c' : 'var(--gold2)'};">${t.isBusted ? '💀 BUSTED' : t.power?.label || '?'}</span>
-      </div>`;
-    });
-    html += `</div>`;
-  }
-
-  // Session score tally
-  html += `<div style="display:flex;gap:8px;margin-top:4px;">`;
-  if (roomState?.players) {
-    roomState.players.forEach(p => {
-      const sw = sessionWins?.[p.id] || 0;
-      html += `<div style="flex:1;text-align:center;background:rgba(255,255,255,0.04);border-radius:6px;padding:6px 8px;">
-        <div style="font-size:11px;color:rgba(255,255,255,0.35);">${esc(p.nickname)}</div>
-        <div style="font-family:'Bebas Neue',cursive;font-size:28px;color:var(--gold2);">${sw}</div>
-      </div>`;
-    });
-  }
-  html += `</div>`;
-
-  content.innerHTML = html;
-  openModal('result-modal');
-
-  // Auto close after 6s
-  setTimeout(() => closeModal('result-modal'), 6500);
-}
-
-function showMatchResult(data) {
-  const { winner, winnerNick, isKitti, leaderboard, matchHistory } = data;
-  const content = document.getElementById('result-modal-content');
-  document.getElementById('result-modal-title').textContent = 'MATCH OVER';
-
-  let html = '';
-  if (isKitti) {
-    html += `<div class="result-modal-winner" style="color:#e74c3c;">KITTI!</div>`;
-    html += `<div style="text-align:center;font-size:13px;color:rgba(255,255,255,0.35);">No winner — play again</div>`;
-  } else {
-    html += `<div class="result-modal-winner">${esc(winnerNick || winner)}</div>`;
-    html += `<div style="text-align:center;font-size:13px;color:rgba(255,255,255,0.4);">Wins the match!</div>`;
-  }
-
-  // Leaderboard
-  html += `<div style="display:flex;gap:8px;margin-top:8px;">`;
-  if (roomState?.players) {
-    roomState.players.forEach(p => {
-      const w = leaderboard?.[p.id] || 0;
-      html += `<div style="flex:1;text-align:center;background:rgba(255,255,255,0.04);border-radius:6px;padding:6px 8px;">
-        <div style="font-size:11px;color:rgba(255,255,255,0.35);">${esc(p.nickname)}</div>
-        <div style="font-family:'Bebas Neue',cursive;font-size:32px;color:var(--gold2);">${w}</div>
-      </div>`;
-    });
-  }
-  html += `</div>`;
-
-  content.innerHTML = html;
-  openModal('result-modal');
-
-  // Update leaderboard panel
-  if (roomState) {
-    roomState.leaderboard = leaderboard;
-    roomState.matchHistory = matchHistory;
-  }
-  updateLeaderboard();
-}
-
-// ═══════════════════════════════════════════
-// LEADERBOARD PANEL
-// ═══════════════════════════════════════════
-function toggleLeaderboard() {
-  const panel = document.getElementById('lb-panel');
-  const backdrop = document.getElementById('lb-backdrop');
-  const isOpen = panel.classList.contains('open');
-  panel.classList.toggle('open', !isOpen);
-  backdrop.classList.toggle('show', !isOpen);
-  if (!isOpen) updateLeaderboard();
-}
-
-function closeLeaderboard() {
-  document.getElementById('lb-panel').classList.remove('open');
-  document.getElementById('lb-backdrop').classList.remove('show');
-}
-
-function updateLeaderboard() {
-  if (!roomState) return;
-  const body = document.getElementById('lb-body');
-  const footer = document.getElementById('lb-footer');
-  const sorted = [...roomState.players].sort((a,b) =>
-    (roomState.leaderboard[b.id]||0) - (roomState.leaderboard[a.id]||0)
-  );
-
-  let bodyHtml = '';
-
-  // Standings
-  bodyHtml += `<div class="lb-section-title">STANDINGS</div>`;
-  sorted.forEach((p, idx) => {
-    const wins = roomState.leaderboard[p.id] || 0;
-    const kittiCnt = roomState.kittiCount?.[p.id] || 0;
-    const kittiBadges = Array(kittiCnt).fill('<div class="kitti-badge">K</div>').join('');
-    bodyHtml += `<div class="lb-row">
-      <div class="lb-rank ${idx===0 && wins>0 ? 'gold-rank' : ''}">${idx+1}</div>
-      <div class="lb-player-info">
-        <div class="lb-player-name">${esc(p.nickname)}${p.id===roomState.hostId?' ♛':''}</div>
-        <div class="lb-player-id">#${p.id}</div>
-        <div class="lb-kitti-badges">${kittiBadges}</div>
-      </div>
-      <div class="lb-wins">${wins}</div>
+  cardHtml(card, full=false) {
+    if (!card) return '<div class="card" style="opacity:.2">—</div>';
+    const suit = SUITS_UNICODE[card.s] || card.s;
+    const isRed = RED_SUITS.has(card.s);
+    return `<div class="card ${isRed?'red-suit':'black-suit'}${full?' full':''}">
+      <div class="card-rank">${card.r}</div>
+      <div class="card-suit">${suit}</div>
     </div>`;
-  });
+  },
 
-  // Match history
-  if (roomState.matchHistory?.length) {
-    bodyHtml += `<div class="lb-section-title" style="margin-top:8px;">MATCH HISTORY</div>`;
-    roomState.matchHistory.forEach(m => {
-      const kittiStr = m.isKitti ? ` <span class="lb-match-kitti">KITTI</span>` : '';
-      bodyHtml += `<div class="lb-match-row">
-        <div class="lb-match-num">${m.matchNumber}</div>
-        <div class="lb-match-winner">${m.isKitti ? '—' : esc(m.winnerNick || m.winner)}</div>
-        ${kittiStr}
-      </div>`;
-    });
-  }
+  renderAll() {
+    UI.renderTable();
+    UI.renderHand();
+    UI.renderThrowPanel();
+    UI.renderSessionDots();
+    UI.renderLeaderboard();
+  },
 
-  body.innerHTML = bodyHtml;
-
-  // Footer: host rename controls + mode toggle
-  let footerHtml = '';
-  if (isHost) {
-    footerHtml += `<div class="lb-section-title">RENAME PLAYERS (HOST)</div>`;
-    footerHtml += `<div class="lb-rename-section">`;
-    roomState.players.forEach(p => {
-      footerHtml += `<div class="lb-rename-row">
-        <div class="lb-rename-who">${esc(p.nickname)}</div>
-        <input class="lb-rename-input" id="rename-${p.id}" placeholder="Nickname" maxlength="12" value="${esc(p.nickname)}">
-        <button class="btn btn-outline btn-sm" onclick="renamePlayer(${p.id})">SET</button>
-      </div>`;
-    });
-    footerHtml += `</div>`;
-
-    if (!roomState.gameState) {
-      footerHtml += `<div class="toggle-row" style="margin-top:4px;">
-        <div class="toggle-label">Consequential Win Mode</div>
-        <label class="toggle-switch">
-          <input type="checkbox" id="mode-toggle-lb" ${gameMode==='consequential'?'checked':''}
-            onchange="setModeFromToggle(this.checked)">
-          <div class="toggle-track"></div>
-          <div class="toggle-thumb"></div>
-        </label>
-      </div>`;
+  renderSessionDots() {
+    const s = State.session || 0;
+    const res = State.room?.sessionResults || [];
+    for (let i = 0; i < 3; i++) {
+      const dot = document.getElementById('sdot-'+i);
+      if (!dot) continue;
+      if (i < s) dot.className = 'session-dot won';
+      else if (i === s && State.room?.state === 'playing') dot.className = 'session-dot active';
+      else dot.className = 'session-dot';
     }
-  }
+  },
 
-  footer.innerHTML = footerHtml;
-}
+  renderTable() {
+    const room = State.room;
+    const players = State.players;
+    const isPlaying = room?.state === 'playing';
+    const isHost = room?.hostId === State.playerId;
+    const isLobby = room?.state === 'lobby' || !room;
 
-function renamePlayer(targetId) {
-  const input = document.getElementById(`rename-${targetId}`);
-  if (!input) return;
-  const nick = input.value.trim();
-  if (!nick) return;
-  socket.emit('set_nickname', { targetId, nickname: nick });
-  showToast(`Renamed to "${nick}"`, 'gold');
-}
+    // Room code
+    document.getElementById('room-code-display').textContent = room ? '# '+room.id : 'no room';
 
-function setModeFromToggle(checked) {
-  gameMode = checked ? 'consequential' : 'random';
-  socket.emit('set_mode', { mode: gameMode });
-  document.getElementById('top-mode-badge').textContent = gameMode.toUpperCase();
-}
+    // Table action area
+    const ta = document.getElementById('table-action');
 
-// ═══════════════════════════════════════════
-// CARD BUILDER
-// ═══════════════════════════════════════════
-function buildCardEl(card, isBack) {
-  const el = document.createElement('div');
-  el.className = 'card';
+    if (!room) {
+      ta.innerHTML = `
+        <button class="btn-primary" onclick="App.createRoom()">Open Table ▲</button>
+        <div class="hint" style="margin-top:.4rem">Or wait for an invite</div>
+      `;
+    } else if (isLobby && isHost) {
+      const canStart = players.length >= 2;
+      ta.innerHTML = `
+        <div class="lobby-controls">
+          <div class="win-mode-wrap">
+            <span>Win mode:</span>
+            <label class="toggle">
+              <input type="checkbox" id="win-mode-toggle" ${room.winMode==='consequential'?'checked':''}
+                onchange="App.setWinMode(this.checked?'consequential':'random')"/>
+              <div class="toggle-track"></div>
+              <div class="toggle-thumb"></div>
+            </label>
+            <span id="win-mode-label">${room.winMode==='consequential'?'Consecutive':'Any 2'}</span>
+          </div>
+          <button class="btn-primary" ${canStart?'':'disabled style="opacity:.4;cursor:not-allowed"'}
+            onclick="${canStart?'App.startGame()':'void 0'}">
+            ▶ Start Game ${players.length<2?'(need 2+)':''}
+          </button>
+          <button class="btn-danger" onclick="App.endGame()">End &amp; Close</button>
+        </div>
+      `;
+    } else if (isLobby && !isHost) {
+      ta.innerHTML = `<div class="hint">Waiting for host to start…</div>`;
+    } else if (isPlaying) {
+      const me = players.find(p=>p.id===State.playerId);
+      if (me?.done) {
+        ta.innerHTML = `<div class="hint">✓ Ready · waiting for others</div>`;
+      } else {
+        ta.innerHTML = `<div class="hint">Arrange &amp; confirm sequences below</div>`;
+      }
+    }
 
-  if (isBack) {
-    const back = document.createElement('div');
-    back.className = 'card-back';
-    back.innerHTML = `<div class="card-back-logo">KITTI</div>`;
-    el.appendChild(back);
-  } else {
-    const face = document.createElement('div');
-    face.className = `card-face ${isRed(card) ? 'red-card' : 'black-card'}`;
-    face.innerHTML = `
-      <div class="card-corner top">
-        <div class="cv">${card.val}</div>
-        <div class="cs">${card.suit}</div>
+    // Render seats
+    UI.renderSeats();
+  },
+
+  renderSeats() {
+    const players = State.players;
+    const room = State.room;
+    const myIdx = players.findIndex(p=>p.id===State.playerId);
+    const positions = ['bottom','left','right'];
+
+    // Reorder so current player is always bottom
+    const ordered = [];
+    for (let i = 0; i < players.length; i++) {
+      ordered.push(players[(myIdx + i) % players.length]);
+    }
+
+    for (let i = 0; i < 3; i++) {
+      const pos = positions[i];
+      const player = ordered[i];
+      const wrapId = i === 0 ? null : 'av-'+pos+'-wrap';
+
+      if (i === 0) {
+        // Bottom = me
+        const av = document.getElementById('av-bottom');
+        av.textContent = (player?.nickname||player?.id||'?')[0].toUpperCase();
+        av.className = 'seat-avatar' + (player?.id===room?.hostId?' host':'') + (player?.online===false?' offline':'');
+        document.getElementById('lb-bottom').textContent = player?.nickname||player?.id||'—';
+        const sc = document.getElementById('sc-bottom');
+        sc.innerHTML = player ? UI.scoreHtml(player) : '';
+
+        // Throw indicator
+        let ti = av.querySelector('.player-throw-indicator');
+        if (!ti) { ti = document.createElement('div'); ti.className='player-throw-indicator'; av.appendChild(ti); }
+        ti.className = 'player-throw-indicator' + (player?.threwThisSession?' show':'');
+        ti.textContent = '✓';
+
+        // Thrower crown
+        let tc = document.getElementById('seat-bottom').querySelector('.thrower-crown');
+        if (!tc) { tc = document.createElement('div'); tc.className='thrower-crown'; document.getElementById('seat-bottom').appendChild(tc); }
+        tc.style.display = State.thrower === player?.id ? '' : 'none';
+        tc.textContent = '♛';
+      } else {
+        const wrap = document.getElementById(wrapId);
+        if (!wrap) continue;
+        if (!player) {
+          // Empty seat with + button if host in lobby
+          if (room?.hostId===State.playerId && room?.state==='lobby') {
+            wrap.innerHTML = `<div class="seat-plus" onclick="UI.openInviteModal()">+</div>`;
+          } else {
+            wrap.innerHTML = `<div class="seat-plus" style="cursor:default;opacity:.3">—</div>`;
+          }
+        } else {
+          const isHost2 = player.id===room?.hostId;
+          wrap.innerHTML = `
+            <div class="seat-avatar${isHost2?' host':''}${player.online===false?' offline':''}">
+              ${(player.nickname||player.id)[0].toUpperCase()}
+              <div class="player-throw-indicator ${player.threwThisSession?'show':''}">✓</div>
+              ${State.thrower===player.id?'<div class="thrower-crown">♛</div>':''}
+            </div>
+            <div class="seat-label">${player.nickname||player.id}</div>
+            <div class="seat-score">${UI.scoreHtml(player)}</div>
+            ${!player.online?'<div style="font-size:.6rem;color:var(--red2)">offline</div>':''}
+          `;
+          // Show hidden cards if playing
+          if (State.room?.state==='playing') {
+            const backs = [1,2,3].map(()=>`<div class="card-back">🂠</div>`).join('');
+            wrap.innerHTML += `<div style="display:flex;gap:3px;margin-top:4px">${backs}</div>`;
+          }
+        }
+      }
+    }
+
+    // Invite buttons for non-host also (anyone can invite if room not full)
+    if (room?.state==='lobby' && room?.hostId!==State.playerId && players.length < 3) {
+      // Check if there are empty seat wrappers
+      for (let i = 1; i < 3; i++) {
+        const pos = positions[i];
+        const wrap = document.getElementById('av-'+pos+'-wrap');
+        if (wrap && !ordered[i]) {
+          wrap.innerHTML = `<div class="seat-plus" onclick="UI.openInviteModal()">+</div>`;
+        }
+      }
+    }
+  },
+
+  scoreHtml(player) {
+    const s = player.roundScores||0;
+    const k = player.kittiCount||0;
+    return `${Array(3).fill(0).map((_,i)=>`<span style="color:${i<s?'var(--gold2)':'rgba(255,255,255,.2)'}">${i<s?'●':'○'}</span>`).join('')}${k>0?` <span style="color:var(--red2);font-size:.6rem">K×${k}</span>`:''}`;
+  },
+
+  openInviteModal() {
+    document.getElementById('invite-input').value='';
+    UI.openModal('invite-modal');
+    setTimeout(()=>document.getElementById('invite-input').focus(),100);
+  },
+
+  renderHand() {
+    const panel = document.getElementById('hand-panel');
+    const content = document.getElementById('hand-content');
+    const isPlaying = State.room?.state==='playing';
+
+    if (!isPlaying || !State.myHand) {
+      panel.classList.add('collapsed');
+      content.innerHTML = '';
+      document.getElementById('hand-title').textContent = 'YOUR HAND';
+      return;
+    }
+
+    panel.classList.remove('collapsed');
+    document.getElementById('hand-title').textContent = State.done ? 'SEQUENCES LOCKED ✓' : 'ARRANGE YOUR SEQUENCES';
+
+    if (State.done) {
+      // Show locked sequences
+      content.innerHTML = `
+        <div class="seq-builder">
+          ${State.mySeqs.map((seq,si)=>`
+            <div class="seq-row">
+              <div class="seq-label" style="color:var(--gold)">${si+1}</div>
+              ${seq.map(c=>c?UI.cardHtml(c,false):`<div class="seq-slot"></div>`).join('')}
+              <span class="seq-type-badge">${seq.every(c=>c)?HAND_TYPE_NAMES[UI.classifyHand(seq).type]||'':'?'}</span>
+            </div>
+          `).join('')}
+        </div>
+        <div class="seq-actions">
+          <button class="btn-ghost" onclick="App.undoDone()" style="font-size:.75rem">✎ Edit</button>
+        </div>
+      `;
+      return;
+    }
+
+    // Remaining unassigned cards
+    const assigned = State.mySeqs.flat().filter(Boolean);
+    const assignedKeys = new Set(assigned.map(c=>c.r+c.s));
+    const remaining = State.myHand.filter(c=>!assignedKeys.has(c.r+c.s));
+
+    content.innerHTML = `
+      <div class="cards-row" id="remaining-cards">
+        ${remaining.map(c=>`
+          <div class="card ${RED_SUITS.has(c.s)?'red-suit':'black-suit'} ${State.selectedCard?.card?.r===c.r&&State.selectedCard?.card?.s===c.s?'selected':''}"
+            onclick="UI.selectCard({r:'${c.r}',s:'${c.s}'},'hand')">
+            <div class="card-rank">${c.r}</div>
+            <div class="card-suit">${SUITS_UNICODE[c.s]||c.s}</div>
+          </div>
+        `).join('')}
+        ${remaining.length===0?'<div class="hint">All cards assigned</div>':''}
       </div>
-      <div class="card-center-suit">${card.suit}</div>
-      <div class="card-corner bottom">
-        <div class="cv">${card.val}</div>
-        <div class="cs">${card.suit}</div>
+      <div class="seq-builder" style="margin-top:.6rem">
+        ${State.mySeqs.map((seq,si)=>`
+          <div class="seq-row">
+            <div class="seq-label">${si+1}</div>
+            ${seq.map((c,ci)=>`
+              <div class="seq-slot ${c?'has-card':''} ${State.selectedCard?.from==='seq'&&State.selectedCard?.seqIdx===si&&State.selectedCard?.slotIdx===ci?'selected':''}"
+                onclick="UI.slotClick(${si},${ci})">
+                ${c?`<div class="card ${RED_SUITS.has(c.s)?'red-suit':'black-suit'}" style="width:44px;height:64px;font-size:.6rem">
+                  <div class="card-rank">${c.r}</div>
+                  <div class="card-suit" style="font-size:.9rem">${SUITS_UNICODE[c.s]||c.s}</div>
+                </div>`:'<span style="font-size:.8rem">+</span>'}
+              </div>
+            `).join('')}
+            ${seq.every(c=>c)?`<span class="seq-type-badge">${HAND_TYPE_NAMES[UI.classifyHand(seq).type]||'?'}</span>`:''}
+          </div>
+        `).join('')}
+      </div>
+      <div class="seq-actions">
+        <button class="btn-ghost" onclick="App.autoArrange()" style="font-size:.75rem">⟳ Auto</button>
+        <button class="btn-ghost" onclick="App.clearSeqs()" style="font-size:.75rem">✕ Clear</button>
+        ${assigned.length===9?`<button class="btn-primary" onclick="App.doneArranging()" style="font-size:.8rem;padding:.6em 1.2em">Done ✓</button>`:''}
       </div>
     `;
-    el.appendChild(face);
+  },
+
+  selectCard(card, from, seqIdx, slotIdx) {
+    if (State.done) return;
+    const cur = State.selectedCard;
+    if (cur) {
+      // Swap/place logic
+      if (from === 'hand' && cur.from === 'hand') {
+        // both from hand, just re-select
+        State.selectedCard = { card, from };
+      } else if (from === 'hand' && cur.from === 'seq') {
+        // put hand card into seq slot, return seq card to hand
+        UI.placeInSeq(card, cur.seqIdx, cur.slotIdx);
+        State.selectedCard = null;
+      } else {
+        State.selectedCard = { card, from, seqIdx, slotIdx };
+      }
+    } else {
+      State.selectedCard = { card, from, seqIdx, slotIdx };
+    }
+    UI.renderHand();
+  },
+
+  slotClick(si, ci) {
+    if (State.done) return;
+    const cur = State.selectedCard;
+    const existing = State.mySeqs[si][ci];
+
+    if (!cur) {
+      if (existing) {
+        State.selectedCard = { card:existing, from:'seq', seqIdx:si, slotIdx:ci };
+        State.mySeqs[si][ci] = null;
+      }
+      UI.renderHand(); return;
+    }
+
+    // Place selected card here
+    if (cur.from === 'hand') {
+      if (existing) {
+        // Swap: put existing back to... nowhere (it'll be in remaining)
+        State.mySeqs[si][ci] = cur.card;
+      } else {
+        State.mySeqs[si][ci] = cur.card;
+      }
+    } else {
+      // Swap two seq slots
+      State.mySeqs[si][ci] = cur.card;
+      State.mySeqs[cur.seqIdx][cur.slotIdx] = existing || null;
+    }
+    State.selectedCard = null;
+    UI.renderHand();
+  },
+
+  placeInSeq(card, si, ci) {
+    const old = State.mySeqs[si][ci];
+    State.mySeqs[si][ci] = card;
+    // old goes back to hand (it's just not in seqs now)
+  },
+
+  classifyHand(cards) {
+    if (!cards || cards.some(c=>!c)) return { type:'?' };
+    const RANKS = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
+    const rv = r => RANKS.indexOf(r);
+    const sorted = [...cards].sort((a,b)=>rv(b.r)-rv(a.r));
+    const ranks = sorted.map(c=>rv(c.r));
+    const suits = sorted.map(c=>c.s);
+    const isFlush = suits[0]===suits[1]&&suits[1]===suits[2];
+    const isTrail = ranks[0]===ranks[1]&&ranks[1]===ranks[2];
+    const isSeq = (()=>{
+      const s=[...ranks].sort((a,b)=>a-b);
+      if(s[2]-s[0]===2&&s[1]-s[0]===1)return true;
+      if(s[0]===0&&s[1]===1&&s[2]===12)return true;
+      return false;
+    })();
+    const isPair = ranks[0]===ranks[1]||ranks[1]===ranks[2];
+    if(isTrail)return{type:'trail'};
+    if(isFlush&&isSeq)return{type:'pure_seq'};
+    if(isSeq)return{type:'sequence'};
+    if(isFlush)return{type:'color'};
+    if(isPair)return{type:'pair'};
+    return{type:'high'};
+  },
+
+  renderThrowPanel() {
+    const panel = document.getElementById('throw-panel');
+    const row = document.getElementById('throw-seq-row');
+    const room = State.room;
+    if (!room || room.state!=='playing' || !State.done) {
+      panel.classList.remove('active');
+      return;
+    }
+    if (State.thrownThisSession) {
+      panel.classList.remove('active');
+      return;
+    }
+    // Show only if it's player's turn or all can throw
+    panel.classList.add('active');
+    const seqs = State.mySeqs;
+    row.innerHTML = seqs.map((seq,i)=>`
+      <div class="throw-seq" onclick="App.throwSeq(${i})">
+        ${seq.map(c=>c?`<div class="card ${RED_SUITS.has(c.s)?'red-suit':'black-suit'}" style="width:36px;height:52px;font-size:.55rem">
+          <div class="card-rank">${c.r}</div>
+          <div class="card-suit" style="font-size:.75rem">${SUITS_UNICODE[c.s]||c.s}</div>
+        </div>`:'<div class="card-back" style="width:36px;height:52px;font-size:.8rem">🂠</div>').join('')}
+        <span class="seq-type-badge">${seq.every(c=>c)?HAND_TYPE_NAMES[UI.classifyHand(seq).type]||'':'?'}</span>
+      </div>
+    `).join('');
+  },
+
+  updateLeaderboard(data) {
+    UI.leaderboardData = data;
+    UI.renderLeaderboard();
+  },
+
+  renderLeaderboard() {
+    const content = document.getElementById('lb-content');
+    const nickSection = document.getElementById('nick-edit-section');
+    const data = UI.leaderboardData;
+    if (!data || data.length===0) {
+      content.innerHTML = '<p class="hint">No data yet</p>';
+      nickSection.innerHTML = '';
+      return;
+    }
+
+    content.innerHTML = data.map((p,i)=>`
+      <div class="lb-row">
+        <div class="lb-rank">${i+1}</div>
+        <div class="lb-name">${p.nickname||p.id}</div>
+        <div class="lb-scores">
+          <span class="lb-wins">${p.wins}W</span>
+          ${p.kitti?`<span class="lb-kitti">K×${p.kitti}</span>`:''}
+        </div>
+      </div>
+      ${p.rounds?.length?`
+        <table class="lb-round-table">
+          <thead><tr><th>Round</th><th>Winner</th><th>Mode</th></tr></thead>
+          <tbody>${p.rounds.map((r,ri)=>`
+            <tr>
+              <td>${ri+1}</td>
+              <td>${r.isKitti?`—`:(data.find(x=>x.id===r.winner)?.nickname||r.winner||'—')}${r.isKitti?` <span style="color:var(--red2)">K${'K'.repeat(r.kittiCounts?.[p.id]||0)}</span>`:''}</td>
+              <td>${r.winMode==='consequential'?'Consec':'Any2'}</td>
+            </tr>
+          `).join('')}</tbody>
+        </table>
+      `:''}
+    `).join('');
+
+    // Host nickname editor
+    const isHost = State.room?.hostId===State.playerId;
+    if (isHost && State.room && State.players.length>0) {
+      nickSection.innerHTML = `
+        <div style="font-size:.7rem;color:var(--gold);letter-spacing:.1em;margin-bottom:.4rem">SET NICKNAMES</div>
+        ${State.players.map(p=>`
+          <div style="margin-bottom:.5rem">
+            <div style="font-size:.65rem;color:rgba(245,230,200,.4);margin-bottom:.2rem">${p.id}</div>
+            <div class="nick-edit">
+              <input class="nick-edit-input" id="nick-${p.id}" value="${p.nickname||''}" placeholder="Nickname"/>
+              <button class="nick-save" onclick="App.setNickname('${p.id}')">Save</button>
+            </div>
+          </div>
+        `).join('')}
+      `;
+    } else {
+      nickSection.innerHTML = '';
+    }
   }
-  return el;
-}
+};
 
-function isRed(card) {
-  return card.suit === '♥' || card.suit === '♦';
-}
+// ════════════════════════════════════════════════════
+//  APP ACTIONS
+// ════════════════════════════════════════════════════
+const App = {
+  enterGame() {
+    document.getElementById('screen-splash').classList.remove('active');
+    document.getElementById('screen-game').classList.add('active');
+    const saved = localStorage.getItem('tpId');
+    State.playerId = saved;
+    WS.connect();
+  },
 
-// ═══════════════════════════════════════════
-// TEEN PATTI POWER (client mirror)
-// ═══════════════════════════════════════════
-function cardWeight(val) {
-  const map = {'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,'10':10,'J':11,'Q':12,'K':13,'A':14};
-  return map[val] || 0;
-}
+  createRoom() {
+    if (!State.playerId) return;
+    WS.send({ type:'create_room', playerId:State.playerId });
+  },
 
-function calcPower(cards) {
-  if (!cards || cards.length < 3) return { rank: 0, power: 0, label: '?' };
-  const sorted = [...cards].sort((a,b) => cardWeight(a.val) - cardWeight(b.val));
-  const w = sorted.map(c => cardWeight(c.val));
-  const suits = sorted.map(c => c.suit);
-  const isFlush = suits[0]===suits[1] && suits[1]===suits[2];
-  const isRun = (w[2]-w[1]===1 && w[1]-w[0]===1) || (w[0]===2&&w[1]===3&&w[2]===14);
-  if (w[0]===w[1]&&w[1]===w[2]) return {rank:6,power:600+w[0],label:'Trail 🔥'};
-  if (isFlush&&isRun) return {rank:5,power:500+w[2],label:'Pure Run'};
-  if (isRun) return {rank:4,power:400+w[2],label:'Run'};
-  if (isFlush) return {rank:3,power:300+w[2],label:'Flush'};
-  if (w[0]===w[1]||w[1]===w[2]) return {rank:2,power:200+(w[0]===w[1]?w[0]:w[2]),label:'Pair'};
-  return {rank:1,power:100+w[2]+w[1]*0.01+w[0]*0.0001,label:'High Card'};
-}
+  sendInvite() {
+    const id = document.getElementById('invite-input').value.trim();
+    if (!id) return;
+    WS.send({ type:'send_invite', fromId:State.playerId, targetId:id });
+    UI.closeModal('invite-modal');
+  },
 
-// ═══════════════════════════════════════════
-// MODAL HELPERS
-// ═══════════════════════════════════════════
-function openModal(id) {
-  document.getElementById(id).classList.add('visible');
-}
-function closeModal(id) {
-  document.getElementById(id).classList.remove('visible');
-}
+  respondInvite(accept) {
+    const inv = State.pendingInvite;
+    if (!inv) return;
+    clearInterval(State.inviteTtlTimer);
+    UI.closeModal('incoming-invite-modal');
+    WS.send({ type:'respond_invite', playerId:State.playerId, roomId:inv.roomId, accept });
+    State.pendingInvite = null;
+  },
 
-// ═══════════════════════════════════════════
-// TOAST
-// ═══════════════════════════════════════════
-function showToast(msg, type = '') {
-  const c = document.getElementById('toast-container');
-  const t = document.createElement('div');
-  t.className = `toast${type === 'gold' ? ' toast-gold' : type === 'red' ? ' toast-red' : ''}`;
-  t.textContent = msg;
-  c.appendChild(t);
-  setTimeout(() => {
-    t.style.animation = 'toastOut 0.25s ease forwards';
-    setTimeout(() => t.remove(), 260);
-  }, 2800);
-}
+  setNickname(targetId) {
+    const val = document.getElementById('nick-'+targetId)?.value?.trim();
+    if (!val) return;
+    WS.send({ type:'set_nickname', hostId:State.playerId, targetId, nickname:val });
+  },
 
-// ═══════════════════════════════════════════
-// UTILS
-// ═══════════════════════════════════════════
-function esc(str) {
-  if (!str) return '';
-  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
+  setWinMode(mode) {
+    WS.send({ type:'set_win_mode', hostId:State.playerId, mode });
+    document.getElementById('win-mode-label').textContent = mode==='consequential'?'Consecutive':'Any 2';
+  },
 
-// ═══════════════════════════════════════════
-// INIT
-// ═══════════════════════════════════════════
-document.addEventListener('DOMContentLoaded', () => {
-  checkOrientation();
-  fitScreen();
-  initSocket();
-});
+  startGame() {
+    WS.send({ type:'start_game', hostId:State.playerId });
+  },
 
-// Keyboard shortcut: G = group, D = done
-document.addEventListener('keydown', e => {
-  if (e.key === 'g' || e.key === 'G') groupSelected();
-  if (e.key === 'd' || e.key === 'D') {
-    const btn = document.getElementById('btn-done');
-    if (btn && !btn.disabled) submitSequences();
+  endGame() {
+    if (!confirm('End game and close table?')) return;
+    WS.send({ type:'end_game', hostId:State.playerId });
+  },
+
+  autoArrange() {
+    if (!State.myHand) return;
+    // Simple auto: first 3, next 3, last 3
+    State.mySeqs = [
+      [...State.myHand.slice(0,3)],
+      [...State.myHand.slice(3,6)],
+      [...State.myHand.slice(6,9)],
+    ];
+    State.selectedCard = null;
+    UI.renderHand();
+  },
+
+  clearSeqs() {
+    State.mySeqs = [[null,null,null],[null,null,null],[null,null,null]];
+    State.selectedCard = null;
+    UI.renderHand();
+  },
+
+  doneArranging() {
+    const seqs = State.mySeqs;
+    if (seqs.flat().some(c=>!c)) { UI.notify('Fill all 9 slots first','error'); return; }
+    // Save & mark done
+    WS.send({ type:'set_sequences', playerId:State.playerId, sequences:seqs });
+    WS.send({ type:'player_done', playerId:State.playerId });
+    State.done = true;
+    UI.renderHand();
+    UI.renderThrowPanel();
+  },
+
+  undoDone() {
+    State.done = false;
+    UI.renderHand();
+    UI.renderThrowPanel();
+  },
+
+  throwSeq(seqIndex) {
+    if (State.thrownThisSession) return;
+    WS.send({ type:'throw_sequence', playerId:State.playerId, seqIndex });
+    State.thrownThisSession = true;
+    UI.notify('Sequence thrown! Waiting for others…');
+    UI.renderThrowPanel();
+  },
+
+  requestNewGame() {
+    document.getElementById('gameover-overlay').classList.remove('active');
+    // Only host can start
+    if (State.room?.hostId === State.playerId) {
+      UI.renderAll();
+    }
+  },
+
+  leaveRoom() {
+    WS.send({ type:'leave_room', playerId:State.playerId });
+    State.room = null;
+    State.players = [];
+    State.myHand = null;
+    State.mySeqs = [[null,null,null],[null,null,null],[null,null,null]];
+    State.done = false;
+    UI.renderAll();
   }
-});
+};
+
+// ════════════════════════════════════════════════════
+//  BOOT
+// ════════════════════════════════════════════════════
+(function boot() {
+  // Pre-assign id from storage so we can send on connect
+  const saved = localStorage.getItem('tpId');
+  if (saved) State.playerId = saved;
+  // Check if splash should be skipped
+  // No — always show splash for UX
+})();
 </script>
 </body>
-</html>
+   </html>
